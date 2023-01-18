@@ -67,9 +67,10 @@ public sealed class TaskService : ITaskService
     public async Task<IEnumerable<TaskRecord>> GetPending(string droneId)
     {
         var conn = _db.GetAsyncConnection();
-        
-        var records = await conn.Table<TaskRecordDao>().Where(r =>
-            r.Status == (int)TaskStatus.PENDING && r.DroneId == droneId).ToArrayAsync();
+
+        var records = await conn.Table<TaskRecordDao>()
+            .Where(r => r.Status == (int)TaskStatus.PENDING && r.DroneId.Equals(droneId))
+            .ToArrayAsync();
 
         return records.Select(r => (TaskRecord)r);
     }
