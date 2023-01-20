@@ -12,7 +12,7 @@ public class CommandService
     public CommandService()
     {
 #if DEBUG
-        var directory = @"C:\Tools\SharpC2\Client\bin\Debug\net6.0-windows10.0.19041.0\win10-x64\Commands";
+        var directory = @"C:\Tools\SharpC2\Client\bin\Debug\net6.0-windows10.0.22000.0\win10-x64\Commands";
 #endif
 #if RELEASE
         var root = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);

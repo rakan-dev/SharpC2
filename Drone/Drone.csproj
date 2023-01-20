@@ -5,7 +5,7 @@
         <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
         <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
         <ProjectGuid>{91EA50CD-E8DF-4EDF-A765-75354643BD0D}</ProjectGuid>
-        <OutputType>Library</OutputType>
+        <OutputType>WinExe</OutputType>
         <AppDesignerFolder>Properties</AppDesignerFolder>
         <RootNamespace>Drone</RootNamespace>
         <AssemblyName>drone</AssemblyName>
@@ -89,6 +89,7 @@
         <Compile Include="Commands\Link.cs" />
         <Compile Include="Commands\Run.cs" />
         <Compile Include="Commands\RunAs.cs" />
+        <Compile Include="Commands\RunPe.cs" />
         <Compile Include="Commands\SetSleep.cs" />
         <Compile Include="Commands\ShInject.cs" />
         <Compile Include="Commands\StopDrone.cs" />
@@ -130,9 +131,17 @@
         <Compile Include="Messages\TaskOutput.cs" />
         <Compile Include="Program.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
+        <Compile Include="Utilities\ArgumentHandler.cs" />
         <Compile Include="Utilities\Crypto.cs" />
+        <Compile Include="Utilities\ExitPatcher.cs" />
         <Compile Include="Utilities\Extensions.cs" />
+        <Compile Include="Utilities\ExtraAPIPatcher.cs" />
+        <Compile Include="Utilities\ExtraEnvironmentPatcher.cs" />
+        <Compile Include="Utilities\FileDescriptorRedirector.cs" />
         <Compile Include="Utilities\Helpers.cs" />
+        <Compile Include="Utilities\ImportResolver.cs" />
+        <Compile Include="Utilities\PELoader.cs" />
+        <Compile Include="Utilities\PEMapper.cs" />
         <Compile Include="Utilities\PowerShellRunner.cs" />
         <Compile Include="Utilities\ReversePortForwardState.cs" />
     </ItemGroup>
