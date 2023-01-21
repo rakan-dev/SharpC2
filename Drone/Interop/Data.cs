@@ -17,6 +17,10 @@ public static class Data
     
     public const long BLOCK_NON_MICROSOFT_BINARIES_ALWAYS_ON = 0x100000000000;
     
+    public const uint IMAGE_SCN_MEM_EXECUTE = 0x20000000;
+    public const uint IMAGE_SCN_MEM_READ = 0x40000000;
+    public const uint IMAGE_SCN_MEM_WRITE = 0x80000000;
+    
     [Flags]
     public enum TOKEN_ACCESS : uint
     {
@@ -234,16 +238,15 @@ public static class Data
         MaxProcessInfoClass
     }
     
+    [StructLayout(LayoutKind.Sequential)]
     public struct PROCESS_BASIC_INFORMATION
     {
-        public IntPtr ExitStatus;
+        public uint ExitStatus;
         public IntPtr PebBaseAddress;
-        public IntPtr AffinityMask;
-        public IntPtr BasePriority;
+        public UIntPtr AffinityMask;
+        public int BasePriority;
         public UIntPtr UniqueProcessId;
         public int InheritedFromUniqueProcessId;
-
-        public int Size => Marshal.SizeOf(typeof(PROCESS_BASIC_INFORMATION));
     }
     
     [StructLayout(LayoutKind.Sequential)]
@@ -296,5 +299,12 @@ public static class Data
         PAGE_WRITECOMBINE = 0x400,
         PAGE_TARGETS_INVALID = 0x40000000,
         PAGE_TARGETS_NO_UPDATE = 0x40000000
+    }
+    
+    [StructLayout(LayoutKind.Sequential)]
+    public struct IMAGE_BASE_RELOCATION
+    {
+        public uint VirtualAdress;
+        public uint SizeOfBlock;
     }
 }

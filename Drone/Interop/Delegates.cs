@@ -32,6 +32,32 @@ public static class Delegates
     
     [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
     public delegate bool RevertToSelf();
+    
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
+    public delegate IntPtr GetStdHandle(int nStdHandle);
+    
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
+    public delegate bool SetStdHandle(
+        int nStdHandle,
+        IntPtr hHandle);
+    
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true, CharSet = CharSet.Unicode)]
+    public delegate IntPtr GetCommandLineW();
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
+    public delegate bool CreatePipe(
+        out IntPtr hReadPipe,
+        out IntPtr hWritePipe,
+        ref SECURITY_ATTRIBUTES lpPipeAttributes,
+        uint nSize);
+    
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
+    public delegate bool ReadFile(
+        IntPtr hFile,
+        byte[] lpBuffer,
+        uint nNumberOfBytesToRead,
+        out uint lpNumberOfBytesRead,
+        IntPtr lpOverlapped);
 
     [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
     public delegate bool PeekNamedPipe(
@@ -51,6 +77,12 @@ public static class Delegates
         TOKEN_ACCESS desiredAccess,
         out IntPtr tokenHandle);
     
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
+    public delegate bool FreeLibrary(IntPtr hModule);
+    
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
+    public delegate uint WaitForSingleObject(IntPtr hHandle, uint dwMilliseconds);
+    
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
     public delegate Native.NTSTATUS NtOpenProcess(
         ref IntPtr processHandle,
@@ -66,6 +98,13 @@ public static class Delegates
         ref IntPtr regionSize,
         MEMORY_ALLOCATION allocationType,
         MEMORY_PROTECTION memoryProtection);
+    
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    public delegate Native.NTSTATUS NtFreeVirtualMemory(
+        IntPtr processHandle,
+        ref IntPtr baseAddress,
+        ref IntPtr regionSize,
+        MEMORY_ALLOCATION freeType);
     
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
     public delegate Native.NTSTATUS NtWriteVirtualMemory(

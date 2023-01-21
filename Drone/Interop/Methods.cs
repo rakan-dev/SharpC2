@@ -102,6 +102,69 @@ public static class Methods
             ref parameters);
     }
 
+    public static IntPtr GetStandardHandle(int stdHandle)
+    {
+        object[] parameters = { stdHandle };
+        
+        return (IntPtr)Generic.DynamicApiInvoke(
+            "kernel32.dll",
+            "GetStdHandle",
+            typeof(GetStdHandle),
+            ref parameters);
+    }
+
+    public static bool SetStandardHandle(int stdHandle, IntPtr hHandle)
+    {
+        object[] parameters = { stdHandle, hHandle };
+        
+        return (bool)Generic.DynamicApiInvoke(
+            "kernel32.dll",
+            "SetStdHandle",
+            typeof(SetStdHandle),
+            ref parameters);
+    }
+
+    public static IntPtr GetCommandLine()
+    {
+        object[] parameters = { };
+        
+        return (IntPtr)Generic.DynamicApiInvoke(
+            "kernel32.dll",
+            "GetCommandLineW",
+            typeof(GetCommandLineW),
+            ref parameters);
+    }
+
+    public static bool ReadFile(IntPtr hFile, byte[] lpBuffer, uint nNumberOfBytesToRead, out uint lpNumberOfBytesRead, IntPtr lpOverlapped)
+    {
+        object[] parameters = { hFile, lpBuffer, nNumberOfBytesToRead, (uint)0, lpOverlapped };
+        
+        var result = (bool)Generic.DynamicApiInvoke(
+            "kernel32.dll",
+            "ReadFile",
+            typeof(ReadFile),
+            ref parameters);
+
+        lpNumberOfBytesRead = (uint)parameters[3];
+        return result;
+    }
+
+    public static bool CreatePipe(out IntPtr hReadPipe, out IntPtr hWritePipe, ref SECURITY_ATTRIBUTES lpPipeAttributes, uint nSize)
+    {
+        object[] parameters = { IntPtr.Zero, IntPtr.Zero, lpPipeAttributes, nSize };
+        
+        var result = (bool)Generic.DynamicApiInvoke(
+            "kernel32.dll",
+            "CreatePipe",
+            typeof(CreatePipe),
+            ref parameters);
+
+        hReadPipe = (IntPtr)parameters[0];
+        hWritePipe = (IntPtr)parameters[1];
+        
+        return result;
+    }
+
     public static bool PeekNamedPipe(IntPtr hPipe)
     {
         object[] parameters = { hPipe, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, (uint)0, IntPtr.Zero };
@@ -110,6 +173,28 @@ public static class Methods
             "kernel32.dll",
             "PeekNamedPipe",
             typeof(PeekNamedPipe),
+            ref parameters);
+    }
+
+    public static bool FreeLibrary(IntPtr hModule)
+    {
+        object[] parameters = { hModule };
+        
+        return (bool)Generic.DynamicApiInvoke(
+            "kernel32.dll",
+            "FreeLibrary",
+            typeof(FreeLibrary),
+            ref parameters);
+    }
+
+    public static void WaitForSingleObject(IntPtr hHandle, uint dwMilliseconds)
+    {
+        object[] parameters = { hHandle, dwMilliseconds };
+        
+        Generic.DynamicApiInvoke(
+            "kernel32.dll",
+            "WaitForSingleObject",
+            typeof(WaitForSingleObject),
             ref parameters);
     }
     
@@ -130,14 +215,14 @@ public static class Methods
         return status;
     }
 
-    public static Native.NTSTATUS NtAllocateVirtualMemory(IntPtr hProcess, int length, MEMORY_PROTECTION protection, ref IntPtr baseAddress)
+    public static Native.NTSTATUS NtAllocateVirtualMemory(IntPtr hProcess, int length, MEMORY_ALLOCATION memoryAllocation, MEMORY_PROTECTION protection, ref IntPtr baseAddress)
     {
         var regionSize = new IntPtr(length);
 
         object[] parameters =
         {
             hProcess, baseAddress, IntPtr.Zero, regionSize,
-            MEMORY_ALLOCATION.MEM_COMMIT | MEMORY_ALLOCATION.MEM_RESERVE,
+            memoryAllocation,
             protection
         };
 
@@ -149,6 +234,23 @@ public static class Methods
 
         baseAddress = (IntPtr)parameters[1];
         return status;
+    }
+
+    public static Native.NTSTATUS NtFreeVirtualMemory(IntPtr hProcess, IntPtr baseAddress, int size)
+    {
+        var regionSize = new IntPtr(size);
+        
+        object[] parameters =
+        {
+            hProcess, baseAddress, regionSize,
+            MEMORY_ALLOCATION.MEM_RELEASE
+        };
+
+        return (Native.NTSTATUS)Generic.DynamicApiInvoke(
+            "ntdll.dll",
+            "NtFreeVirtualMemory",
+            typeof(NtFreeVirtualMemory),
+            ref parameters);
     }
 
     public static Native.NTSTATUS NtWriteVirtualMemory(IntPtr hProcess, IntPtr baseAddress, byte[] data)
@@ -236,7 +338,7 @@ public static class Methods
         return (PROCESS_BASIC_INFORMATION)Marshal.PtrToStructure(pProcInfo, typeof(PROCESS_BASIC_INFORMATION));
     }
     
-    public static uint NtQueryInformationProcess(IntPtr hProcess, PROCESS_INFO_CLASS processInfoClass, out IntPtr pProcInfo)
+    public static Native.NTSTATUS NtQueryInformationProcess(IntPtr hProcess, PROCESS_INFO_CLASS processInfoClass, out IntPtr pProcInfo)
     {
         int processInformationLength;
         uint retLen = 0;
@@ -244,18 +346,24 @@ public static class Methods
         switch (processInfoClass)
         {
             case PROCESS_INFO_CLASS.ProcessWow64Information:
+            {
                 pProcInfo = Marshal.AllocHGlobal(IntPtr.Size);
                 RtlZeroMemory(pProcInfo, IntPtr.Size);
                 processInformationLength = IntPtr.Size;
+                
                 break;
+            }
 
             case PROCESS_INFO_CLASS.ProcessBasicInformation:
+            {
                 var pbi = new PROCESS_BASIC_INFORMATION();
                 pProcInfo = Marshal.AllocHGlobal(Marshal.SizeOf(pbi));
                 RtlZeroMemory(pProcInfo, Marshal.SizeOf(pbi));
                 Marshal.StructureToPtr(pbi, pProcInfo, true);
                 processInformationLength = Marshal.SizeOf(pbi);
+                
                 break;
+            }
 
             default:
                 throw new InvalidOperationException($"Invalid ProcessInfoClass: {processInfoClass}");
@@ -263,10 +371,10 @@ public static class Methods
 
         object[] parameters = { hProcess, processInfoClass, pProcInfo, processInformationLength, retLen };
 
-        var status = (uint)Generic.DynamicApiInvoke(
+        var status = (Native.NTSTATUS)Generic.DynamicApiInvoke(
             "ntdll.dll",
             "NtQueryInformationProcess",
-            typeof(Delegates.NtQueryInformationProcess),
+            typeof(NtQueryInformationProcess),
             ref parameters);
 
         pProcInfo = (IntPtr)parameters[2];
