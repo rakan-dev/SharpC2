@@ -3,8 +3,6 @@ using TeamServer.Messages;
 using TeamServer.Storage;
 using TeamServer.Tasks;
 
-using TaskStatus = TeamServer.Tasks.TaskStatus;
-
 namespace TeamServer.Services;
 
 public sealed class TaskService : ITaskService

@@ -8,8 +8,6 @@ using TeamServer.Interfaces;
 using TeamServer.Messages;
 using TeamServer.Modules;
 
-using TaskStatus = TeamServer.Tasks.TaskStatus;
-
 namespace TeamServer.Services;
 
 public class ServerService : IServerService

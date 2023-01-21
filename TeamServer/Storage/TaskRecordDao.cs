@@ -1,7 +1,6 @@
 ﻿using SQLite;
 
 using TeamServer.Tasks;
-using TaskStatus = TeamServer.Tasks.TaskStatus;
 
 namespace TeamServer.Storage;
 
@@ -10,21 +9,21 @@ public sealed class TaskRecordDao
 {
     [PrimaryKey, Column("task_id")]
     public string TaskId { get; set; }
-    
+
     [Column("drone_id")]
     public string DroneId { get; set; }
-    
+
     [Column("nick")]
     public string Nick { get; set; }
-    
+
     [Column("command")]
     public byte Command { get; set; }
-    
+
     [Column("alias")]
     public string Alias { get; set; }
 
     [Column("arguments")]
-    public string Arguments { get; set; }  // can't store as string[]
+    public string Arguments { get; set; } // can't store as string[]
 
     [Column("artefact_path")]
     public string ArtefactPath { get; set; }
@@ -34,16 +33,16 @@ public sealed class TaskRecordDao
 
     [Column("start_time")]
     public DateTime StartTime { get; set; }
-    
+
     [Column("end_time")]
     public DateTime EndTime { get; set; }
 
     [Column("status")]
     public int Status { get; set; }
-    
+
     [Column("result_type")]
     public int ResultType { get; set; }
-    
+
     [Column("result")]
     public byte[] Result { get; set; }
 
@@ -69,21 +68,25 @@ public sealed class TaskRecordDao
 
     public static implicit operator TaskRecord(TaskRecordDao dao)
     {
-        return new TaskRecord
-        {
-            TaskId = dao.TaskId,
-            DroneId = dao.DroneId,
-            Nick = dao.Nick,
-            Command = dao.Command,
-            Alias = dao.Alias,
-            Arguments = dao.Arguments.Split("__,__"),
-            ArtefactPath = dao.ArtefactPath,
-            Artefact = dao.Artefact,
-            StartTime = dao.StartTime,
-            EndTime = dao.EndTime,
-            Status = (TaskStatus)dao.Status,
-            ResultType = dao.ResultType,
-            Result = dao.Result
-        };
+        return dao is null
+            ? null
+            : new TaskRecord
+            {
+                TaskId = dao.TaskId,
+                DroneId = dao.DroneId,
+                Nick = dao.Nick,
+                Command = dao.Command,
+                Alias = dao.Alias,
+                Arguments = string.IsNullOrWhiteSpace(dao.Arguments)
+                    ? Array.Empty<string>()
+                    : dao.Arguments.Split("__,__"),
+                ArtefactPath = dao.ArtefactPath,
+                Artefact = dao.Artefact,
+                StartTime = dao.StartTime,
+                EndTime = dao.EndTime,
+                Status = (TaskStatus)dao.Status,
+                ResultType = dao.ResultType,
+                Result = dao.Result
+            };
     }
 }

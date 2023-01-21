@@ -12,8 +12,6 @@ using TeamServer.Messages;
 using TeamServer.Tasks;
 using TeamServer.Utilities;
 
-using TaskStatus = TeamServer.Tasks.TaskStatus;
-
 namespace TeamServer.Controllers;
 
 [Authorize]

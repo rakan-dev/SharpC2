@@ -55,33 +55,50 @@
                             </TitleContent>
                             <ChildContent>
                                 
-                                @if (task.ResultType == ResultType.STRING)
+                                @if (task.Status == TaskStatus.COMPLETE)
+                                {
+                                    switch (task.ResultType)
+                                    {
+                                        case ResultType.STRING:
+                                        {
+                                            <pre>@Encoding.UTF8.GetString(task.Result)</pre>
+                                            break;
+                                        }
+
+                                        case ResultType.DIRECTORY_LISTING:
+                                        {
+                                            <DirectoryListing TaskRecord="@task"/>
+                                            break;
+                                        }
+
+                                        case ResultType.PROCESS_LISTING:
+                                        {
+                                            <ProcessListing TaskRecord="@task"/>
+                                            break;
+                                        }
+                                            
+                                        case ResultType.SCREENSHOT:
+                                        {
+                                            var encoded = Convert.ToBase64String(task.Result, 0, task.Result.Length);
+                                            <img src="data:image/png;base64, @encoded" alt="@task.TaskId"/>
+                                            break;
+                                        }
+                                            
+                                        case ResultType.NONE:
+                                            break;
+                                            
+                                        default:
+                                            throw new ArgumentOutOfRangeException();
+                                    }
+                                }
+                                
+                                @if (task.Status == TaskStatus.ABORTED)
                                 {
                                     <pre>
                                         @Encoding.UTF8.GetString(task.Result)
                                     </pre>
                                 }
-                                
-                                @if (task.ResultType == ResultType.DIRECTORY_LISTING)
-                                {
-                                    <DirectoryListing TaskRecord="@task" />
-                                }
-                                
-                                @if (task.ResultType == ResultType.PROCESS_LISTING)
-                                {
-                                    <ProcessListing TaskRecord="@task" />
-                                }
-                                
-                                @if (task.ResultType == ResultType.SCREENSHOT)
-                                {
-                                    // don't show anything unless the task is complete
-                                    if (task.Status == TaskStatus.COMPLETE)
-                                    {
-                                        var encoded = Convert.ToBase64String(task.Result, 0, task.Result.Length);
-                                        <img src="data:image/png;base64, @encoded" alt="@task.TaskId" />
-                                    }
-                                }
-                                
+
                             </ChildContent>
                         </MudExpansionPanel>
                     }
