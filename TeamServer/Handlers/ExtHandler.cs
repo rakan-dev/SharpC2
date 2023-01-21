@@ -39,7 +39,6 @@ public class ExtHandler : Handler
         var listener = new TcpListener(new IPEndPoint(IPAddress.Any, BindPort));
         listener.Start(100);
 
-
         // blocks
         var client = await listener.AcceptTcpClientAsync();
 
