@@ -178,6 +178,7 @@ public class HandlersController : ControllerBase
                 break;
             
             case HandlerType.EXTERNAL:
+                ((ExtHandler)handler).Stop();
                 await _hub.Clients.All.ExternalHandlerDeleted(handler.Name);
                 break;
             

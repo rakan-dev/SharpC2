@@ -21,10 +21,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Data" />
-    </ItemGroup>
-
-    <ItemGroup>
       <None Remove="Resources\drone.dll" />
       <EmbeddedResource Include="Resources\drone.dll" />
       <None Remove="Resources\exe_stager.exe" />
@@ -35,6 +31,10 @@
       <EmbeddedResource Include="Resources\stager.ps1" />
       <None Remove="server.key" />
       <None Remove="server.crt" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Data\" />
     </ItemGroup>
 
 </Project>
