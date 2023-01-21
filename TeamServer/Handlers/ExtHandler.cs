@@ -39,19 +39,20 @@ public class ExtHandler : Handler
         var listener = new TcpListener(new IPEndPoint(IPAddress.Any, BindPort));
         listener.Start(100);
 
+
         // blocks
         var client = await listener.AcceptTcpClientAsync();
-        
+
         // the first thing we expect is a pipename
         var stageReq = await client.ReadClient();
         var pipeName = Encoding.UTF8.GetString(stageReq);
-        
+
         // create a "fake" handler
-        var handler = new SmbHandler { PipeName = pipeName };
-        
+        var handler = new SmbHandler { PipeName = pipeName, PayloadType = PayloadType.BIND_PIPE };
+
         // generate shellcode
         var payload = await _payloads.GeneratePayload(handler, PayloadFormat.SHELLCODE);
-        
+
         // return this to the client
         await client.WriteClient(payload);
 
@@ -71,7 +72,7 @@ public class ExtHandler : Handler
                 // give frame to server
                 await _server.HandleInboundFrame(frame);
             }
-            
+
             // if anything outbound
             if (_metadata is not null)
             {
@@ -83,16 +84,16 @@ public class ExtHandler : Handler
                     await client.WriteClient(outbound);
                 }
             }
-            
+
             await Task.Delay(100);
         }
-        
+
         client.Dispose();
         listener.Stop();
-        
+
         _tokenSource.Dispose();
     }
-
+   
     public void Stop()
     {
         _tokenSource.Cancel();
