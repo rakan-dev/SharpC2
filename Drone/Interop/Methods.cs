@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Drawing.Design;
-using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 
 using DInvoke.DynamicInvoke;
+
 using Native = DInvoke.Data.Native;
 using Win32 = DInvoke.Data.Win32;
 
@@ -184,6 +184,58 @@ public static class Methods
             "kernel32.dll",
             "FreeLibrary",
             typeof(FreeLibrary),
+            ref parameters);
+    }
+
+    public static bool WriteFile(IntPtr hFile, byte[] lpBuffer, uint nNumberOfBytesToWrite,
+        out uint lpNumberOfBytesWritten, IntPtr lpOverlapped)
+    {
+        object[] parameters =
+        {
+            hFile, lpBuffer, nNumberOfBytesToWrite, (uint)0, lpOverlapped
+        };
+        
+        var result = (bool)Generic.DynamicApiInvoke(
+            "kernel32.dll",
+            "WriteFile",
+            typeof(WriteFile),
+            ref parameters);
+
+        lpNumberOfBytesWritten = (uint)parameters[3];
+        return result;
+    }
+
+    public static IntPtr CreateTransaction(IntPtr lpTransactionAttributes, IntPtr uow, int createOptions, int isolationLevel,
+        int isolationFlags, int timeout, StringBuilder description)
+    {
+        object[] parameters =
+        {
+            lpTransactionAttributes, uow, createOptions, isolationLevel,
+            isolationFlags, timeout, description
+        };
+        
+        return (IntPtr)Generic.DynamicApiInvoke(
+            "ktmw32.dll",
+            "CreateTransaction",
+            typeof(CreateTransaction),
+            ref parameters,
+            true);
+    }
+
+    public static IntPtr CreateFileTransacted(string lpFileName, uint dwDesiredAccess,
+        uint dwShareMode, IntPtr lpSecurityAttributes, uint dwCreationDisposition, uint dwFlagsAndAttributes,
+        IntPtr hTemplateFile, IntPtr hTransaction, ref ushort pusMiniVersion, IntPtr nullValue)
+    {
+        object[] parameters =
+        {
+            lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition,
+            dwFlagsAndAttributes, hTemplateFile, hTransaction, pusMiniVersion, nullValue
+        };
+        
+        return (IntPtr)Generic.DynamicApiInvoke(
+            "kernel32.dll",
+            "CreateFileTransactedW",
+            typeof(CreateFileTransactedW),
             ref parameters);
     }
 

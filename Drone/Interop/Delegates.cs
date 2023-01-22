@@ -67,8 +67,63 @@ public static class Delegates
         IntPtr lpBytesRead,
         ref uint lpTotalBytesAvail,
         IntPtr lpBytesLeftThisMessage);
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode, SetLastError = true)]
+    public delegate IntPtr CreateFileW(
+        [MarshalAs(UnmanagedType.LPWStr)] string lpFileName,
+        uint dwDesiredAccess,
+        uint dwShareMode,
+        IntPtr lpSecurityAttributes,
+        uint dwCreationDisposition,
+        uint dwFlagsAndAttributes,
+        IntPtr hTemplateFile);
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
+    public delegate uint GetFileAttributesW(IntPtr lpFileName);
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
+    public delegate bool GetFileAttributesExW(
+        IntPtr lpFileName,
+        uint fInfoLevelId,
+        IntPtr lpFileInformation);
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
+    public delegate bool GetFileInformationByHandle(
+        IntPtr hFile,
+        IntPtr lpFileInformation);
     
-    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
+    public delegate bool WriteFile(
+        IntPtr hFile,
+        byte[] lpBuffer,
+        uint nNumberOfBytesToWrite,
+        out uint lpNumberOfBytesWritten,
+        IntPtr lpOverlapped);
+    
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
+    public delegate IntPtr CreateTransaction(
+        IntPtr lpTransactionAttributes,
+        IntPtr uow,
+        int createOptions,
+        int isolationLevel,
+        int isolationFlags,
+        int timeout,
+        [MarshalAs(UnmanagedType.LPWStr)] System.Text.StringBuilder description);
+    
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true, CharSet = CharSet.Unicode)]
+    public delegate IntPtr CreateFileTransactedW(
+        [MarshalAs(UnmanagedType.LPWStr)] string lpFileName,
+        uint dwDesiredAccess,
+        uint dwShareMode,
+        IntPtr lpSecurityAttributes,
+        uint dwCreationDisposition,
+        uint dwFlagsAndAttributes,
+        IntPtr hTemplateFile,
+        IntPtr hTransaction,
+        ref ushort pusMiniVersion,
+        IntPtr nullValue);
+    
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
     public delegate bool CloseHandle(IntPtr hObject);
     
     [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]

