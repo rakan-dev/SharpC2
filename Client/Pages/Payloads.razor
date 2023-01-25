@@ -6,6 +6,7 @@
 @inject IDialogService Dialogs
 
 @using Client.Models.Handlers
+@using Client.Components.Handlers
 
 <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge">
     
@@ -26,6 +27,7 @@
         </MudSelect>
 
         <MudButton Variant="Variant.Filled" OnClick="Download">Download</MudButton>
+        <MudButton Variant="Variant.Filled" OnClick="Host">Host</MudButton>
         
     </MudStack>
     
@@ -62,37 +64,72 @@
     {
         await using var response = await Api.GeneratePayload(_selectedHandler, _formats[_selectedFormat]);
         using var sr = new DotNetStreamReference(response);
-        
-        var fileName = $"drone_{_selectedHandler.Name}";
 
-        switch (_selectedFormat)
-        {
-            case "EXE":
-                fileName += ".exe";
-                break;
-                
-            case "DLL":
-                fileName += ".dll";
-                break;
-                
-            case "SVC_EXE":
-                fileName += ".exe";
-                break;
-                
-            case "POWERSHELL":
-                fileName += ".ps1";
-                break;
-                
-            case "SHELLCODE":
-                fileName += ".bin";
-                break;
-        }
-
-        await Js.InvokeVoidAsync("downloadFileFromStream", fileName, sr);
+        await Js.InvokeVoidAsync("downloadFileFromStream", FileName, sr);
 
         var options = new DialogOptions { NoHeader = false };
         await Dialogs.ShowMessageBox("Success",
-            $"Saved {fileName} to Downloads folder",
+            $"Saved {FileName} to Downloads folder",
             "OK", null, null, options);
+    }
+
+    private async Task Host()
+    {
+        await using var response = await Api.GeneratePayload(_selectedHandler, _formats[_selectedFormat]);
+        await using var ms = new MemoryStream();
+        await response.CopyToAsync(ms);
+
+        var payload = ms.ToArray();
+        
+        var parameters = new DialogParameters
+        {
+            { "FileContent", payload },
+            { "FileName", FileName }
+        };
+        
+        var options = new DialogOptions { FullWidth = true };
+        var dialogue = await Dialogs.ShowAsync<HostAFile>("", parameters, options);
+        var result = await dialogue.Result;
+
+        if (!result.Cancelled)
+        {
+            options = new DialogOptions { NoHeader = false };
+            await Dialogs.ShowMessageBox("Success",
+                $"Hosted {FileName}",
+                "OK", null, null, options);
+        }
+    }
+
+    private string FileName
+    {
+        get
+        {
+            var fileName = $"drone_{_selectedHandler.Name}";
+
+            switch (_selectedFormat)
+            {
+                case "EXE":
+                    fileName += ".exe";
+                    break;
+                
+                case "DLL":
+                    fileName += ".dll";
+                    break;
+                
+                case "SVC_EXE":
+                    fileName += ".exe";
+                    break;
+                
+                case "POWERSHELL":
+                    fileName += ".ps1";
+                    break;
+                
+                case "SHELLCODE":
+                    fileName += ".bin";
+                    break;
+            }
+
+            return fileName;
+        }
     }
 }
