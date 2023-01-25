@@ -73,19 +73,10 @@
     
     private readonly List<Handler> _handlers = new();
 
-    protected override async Task OnParametersSetAsync()
+    protected override async Task OnInitializedAsync()
     {
-        if (Handler is null)
-        {
-            var http = await Api.GetHttpHandlers();
-            _handlers.AddRange(http);
-
-            var smb = await Api.GetSmbHandlers();
-            _handlers.AddRange(smb);
-
-            var tcp = await Api.GetTcpHandlers();
-            _handlers.AddRange(tcp);
-        }
+        var http = await Api.GetHttpHandlers();
+        _handlers.AddRange(http);
     }
 
     private async Task UploadFiles(IBrowserFile file)
