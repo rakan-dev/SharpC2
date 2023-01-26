@@ -2,6 +2,8 @@
 
 @inherits LayoutComponentBase
 
+@using Microsoft.AspNetCore.Components.Authorization
+
 @inject SharpC2Api Api
 @inject SharpC2Hub Hub
 @inject ISnackbar Snackbar
@@ -25,9 +27,15 @@
                        OnClick="GoToDocumentation" Title="Read the Docs"/>
         
     </MudAppBar>
-    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
-        <NavMenu/>
-    </MudDrawer>
+    
+    <AuthorizeView>
+        <Authorized>
+            <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+                    <NavMenu/>
+                </MudDrawer>
+        </Authorized>
+    </AuthorizeView>
+
     <MudMainContent>
         @Body
     </MudMainContent>
