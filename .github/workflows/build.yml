@@ -1,0 +1,85 @@
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - '**/*.md'
+      - '**/*.gitignore'
+      - '**/*.gitattributes'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build-client-windows:
+    name: Windows Client Build
+    runs-on: windows-2022
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup .NET 6
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Install MAUI Workload
+        run: dotnet workload install maui --ignore-failed-sources
+
+      - name: Restore Dependencies
+        run: dotnet restore Client/Client.csproj
+        
+      - name: Decode PFX File
+        run: |
+          echo "${{ secrets.PFX_FILE }}" > cert.pfx.asc
+          certutil -decode cert.pfx.asc cert.pfx
+          
+      - name: Add Cert to Store
+        run: certutil -user -q -p ${{ secrets.PFX_PASSWORD }} -importpfx cert.pfx NoRoot
+
+      - name: Build MAUI
+        run: dotnet publish Client/Client.csproj -c Release -f net6.0-windows10.0.22000.0 --no-restore
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: client-windows
+          path: Client/bin/Release/net6.0-windows10.0.22000.0/win10-x64/AppPackages/Client*/Client*.msix
+
+  build-teamserver-linux:
+    name: Linux Team Server Build
+    runs-on: ubuntu-latest
+    steps:
+    
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup .NET 7
+      uses: actions/setup-dotnet@v3
+      with:
+          dotnet-version: 7.0.x
+          
+    - name: Add NuGet Source
+      run: dotnet nuget add source https://nuget.code-offensive.net/v3/index.json
+          
+    - name: Restore Dependencies
+      run: dotnet restore TeamServer/TeamServer.csproj
+      
+    - name: Build Team Server
+      run: dotnet publish TeamServer/TeamServer.csproj -c Release -r linux-x64 --no-restore --self-contained
+      
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: teamserver-linux
+        path: TeamServer/bin/Release/net7.0/linux-x64/publish/*
