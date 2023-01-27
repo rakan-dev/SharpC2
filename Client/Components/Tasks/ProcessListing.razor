@@ -2,9 +2,9 @@
 
 <MudTable T="ProcessEntry" Items="@_entries" Hover="true" Dense="@true" SortLabel="Sort By"
           Filter="@(new Func<ProcessEntry,bool>(FilterFunc))">
-<ToolBarContent>
-    <MudTextField @bind-Value="_searchString" Placeholder="Filter on Name" Adornment="Adornment.Start"
-                  AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="xs-6 mt-0" Immediate="@true"/>
+    <ToolBarContent>
+        <MudTextField @bind-Value="_searchString" Placeholder="Filter on Name" Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="xs-6 mt-0" Immediate="@true"/>
     </ToolBarContent>
     <HeaderContent>
         <MudTh><MudTableSortLabel SortBy="@(new Func<ProcessEntry, object>(e => e.ProcessId))">PID</MudTableSortLabel></MudTh>
@@ -24,6 +24,9 @@
         <MudTd DataLabel="Owner">@context.Owner</MudTd>
         <MudTd DataLabel="Arch">@context.Arch</MudTd>
     </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
 </MudTable>
 
 @code {

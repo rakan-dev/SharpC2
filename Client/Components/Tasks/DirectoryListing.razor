@@ -2,9 +2,9 @@
 
 <MudTable T="DirectoryEntry" Items="@_entries" Hover="true" Dense="@true" SortLabel="Sort By"
           Filter="@(new Func<DirectoryEntry,bool>(FilterFunc))">
-<ToolBarContent>
-    <MudTextField @bind-Value="_searchString" Placeholder="Filter on Name" Adornment="Adornment.Start"
-                  AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="xs-6 mt-0" Immediate="@true"/>
+    <ToolBarContent>
+        <MudTextField @bind-Value="_searchString" Placeholder="Filter on Name" Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="xs-6 mt-0" Immediate="@true"/>
     </ToolBarContent>
     <HeaderContent>
         <MudTh><MudTableSortLabel SortBy="@(new Func<DirectoryEntry, object>(e => e.Name))">Name</MudTableSortLabel></MudTh>
@@ -20,6 +20,9 @@
         <MudTd DataLabel="LastAccessTime">@context.LastAccessTime</MudTd>
         <MudTd DataLabel="LastWriteTime">@context.LastWriteTime</MudTd>
     </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
 </MudTable>
 
 @code {
