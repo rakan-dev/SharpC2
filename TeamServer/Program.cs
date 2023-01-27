@@ -28,7 +28,7 @@ internal static class Program
     {
         if (args.Length < 2)
         {
-            Console.WriteLine("Usage: ./teamserver <ip> <password>");
+            Console.WriteLine("Usage: ./TeamServer <ip> <password>");
             return;
         }
         

@@ -19,6 +19,10 @@
         <MudTd DataLabel="Size">@context.Size</MudTd>
         <MudTd DataLabel="Handler">@context.Handler</MudTd>
         <MudTd>
+            <MudTooltip Text="Copy URL">
+                <MudIconButton Icon="@Icons.Material.Filled.Link" Size="Size.Medium"
+                               Color="@Color.Inherit" OnClick="@(async () => await CopyUrl(context))"/>
+            </MudTooltip>
             <MudTooltip Text="Delete">
                 <MudIconButton Icon="@Icons.Material.Filled.DeleteForever" Size="Size.Medium"
                                Color="@Color.Error" OnClick="@(async () => await DeleteHostedFile(context.Id))"/>
@@ -69,6 +73,18 @@
 
         _files.Remove(file);
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task CopyUrl(HostedFile file)
+    {
+        var handler = await Api.GetHttpHandler(file.Handler);
+        
+        if (handler is null)
+            return;
+        
+        var url = $"http://{handler.ConnectAddress}:{handler.ConnectPort}{file.Uri}";
+        
+        await Clipboard.Default.SetTextAsync(url);
     }
 
     private async Task DeleteHostedFile(string id)
