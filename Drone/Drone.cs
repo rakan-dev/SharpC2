@@ -98,7 +98,7 @@ public sealed class Drone
         if (_commModule is not P2PCommModule commModule)
             return;
         
-        commModule.Init();
+        commModule.Init(_metadata);
         commModule.FrameReceived += HandleFrame;
         
         // this blocks until connected
@@ -299,7 +299,7 @@ public sealed class Drone
     
     public async Task AddChildCommModule(string taskId, P2PCommModule commModule)
     {
-        commModule.Init();
+        commModule.Init(_metadata);
         
         commModule.FrameReceived += OnFrameReceivedFromChild;
         commModule.OnException += async () =>

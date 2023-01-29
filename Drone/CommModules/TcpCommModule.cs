@@ -36,7 +36,7 @@ public sealed class TcpCommModule : P2PCommModule
         Mode = ModuleMode.CLIENT;
     }
     
-    public override void Init()
+    public override void Init(Metadata metadata)
     {
         _tokenSource = new CancellationTokenSource();
         
