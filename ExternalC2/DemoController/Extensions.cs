@@ -1,39 +1,19 @@
-﻿using System.Net.Sockets;
-using System.Security.Claims;
+﻿using System;
+using System.IO;
+using System.Net.Sockets;
+using System.Threading.Tasks;
 
-using ProtoBuf;
-
-namespace TeamServer.Utilities;
+namespace DemoController;
 
 public static class Extensions
 {
-    public static byte[] Serialize<T>(this T item)
-    {
-        using var ms = new MemoryStream();
-        Serializer.Serialize(ms, item);
-        return ms.ToArray();
-    }
-
-    public static T Deserialize<T>(this byte[] data)
-    {
-        using var ms = new MemoryStream(data);
-        return Serializer.Deserialize<T>(ms);
-    }
-
-    public static string GetClaimFromContext(this HttpContext context)
-    {
-        return context.User.Identity is not ClaimsIdentity identity
-            ? string.Empty
-            : identity.Name;
-    }
-    
-    public static bool DataAvailable(this TcpClient client)
+    public static bool HasData(this TcpClient client)
     {
         var stream = client.GetStream();
         return stream.DataAvailable;
     }
-    
-    public static async Task<byte[]> ReadClient(this TcpClient client)
+
+    public static async Task<byte[]> ReadData(this TcpClient client)
     {
         var stream = client.GetStream();
         
@@ -62,8 +42,8 @@ public static class Extensions
         
         return ms.ToArray();
     }
-    
-    public static async Task WriteClient(this TcpClient client, byte[] data)
+
+    public static async Task WriteData(this TcpClient client, byte[] data)
     {
         // format data as [length][value]
         var lengthBuf = BitConverter.GetBytes(data.Length);
@@ -92,32 +72,5 @@ public static class Extensions
             bytesRemaining -= lengthToSend;
         }
         while (bytesRemaining > 0);
-    }
-
-    public static async Task<byte[]> ReadStream(this Stream stream)
-    {
-        const int bufSize = 1024;
-        int read;
-
-        using var ms = new MemoryStream();
-
-        do
-        {
-            var buf = new byte[bufSize];
-            read = await stream.ReadAsync(buf, 0, bufSize);
-
-            if (read == 0)
-                break;
-
-            await ms.WriteAsync(buf, 0, read);
-
-        } while (read >= bufSize);
-
-        return ms.ToArray();
-    }
-
-    public static async Task WriteStream(this Stream stream, byte[] data)
-    {
-        await stream.WriteAsync(data);
     }
 }

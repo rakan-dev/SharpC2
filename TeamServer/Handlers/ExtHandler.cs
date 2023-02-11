@@ -47,10 +47,10 @@ public class ExtHandler : Handler
         var pipeName = Encoding.UTF8.GetString(stageReq);
 
         // create a "fake" handler
-        var handler = new SmbHandler { PipeName = pipeName, PayloadType = PayloadType.BIND_PIPE };
+        var handler = new SmbHandler { PipeName = pipeName, PayloadType = PayloadType.EXTERNAL };
 
         // generate shellcode
-        var payload = await _payloads.GeneratePayload(handler, PayloadFormat.SHELLCODE);
+        var payload = await _payloads.GeneratePayload(handler, PayloadFormat.ASSEMBLY);
 
         // return this to the client
         await client.WriteClient(payload);

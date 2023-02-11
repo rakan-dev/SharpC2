@@ -1,34 +1,16 @@
-﻿using System.IO.Pipes;
+﻿using System;
+using System.IO;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 
-namespace ExampleController;
+namespace DemoClient;
 
 public static class Extensions
 {
-    public static bool DataAvailable(this PipeStream pipe)
+    public static async Task<byte[]> ReadData(this TcpClient client)
     {
-        var hPipe = pipe.SafePipeHandle.DangerousGetHandle();
+        var stream = client.GetStream();
         
-        uint available = 0;
-        
-        _ = Win32.PeekNamedPipe(
-            hPipe,
-            IntPtr.Zero,
-            IntPtr.Zero,
-            IntPtr.Zero,
-            ref available,
-            IntPtr.Zero);
-
-        return available > 0;
-    }
-
-    public static bool DataAvailable(this NetworkStream stream)
-    {
-        return stream.DataAvailable;
-    }
-    
-    public static async Task<byte[]> ReadStream(this Stream stream)
-    {
         // read length
         var lengthBuf = new byte[4];
         var read = await stream.ReadAsync(lengthBuf, 0, 4);
@@ -54,8 +36,8 @@ public static class Extensions
         
         return ms.ToArray();
     }
-    
-    public static async Task WriteStream(this Stream stream, byte[] data)
+
+    public static async Task WriteData(this TcpClient client, byte[] data)
     {
         // format data as [length][value]
         var lengthBuf = BitConverter.GetBytes(data.Length);
@@ -65,6 +47,7 @@ public static class Extensions
         Buffer.BlockCopy(data, 0, lv, lengthBuf.Length, data.Length);
         
         using var ms = new MemoryStream(lv);
+        var stream = client.GetStream();
         
         // write in chunks
         var bytesRemaining = lv.Length;

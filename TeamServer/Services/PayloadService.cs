@@ -69,9 +69,14 @@ public class PayloadService : IPayloadService
                 
                 break;
             }
-            
+
             case PayloadType.EXTERNAL:
-                throw new NotImplementedException();
+            {
+                var smbHandler = (SmbHandler)handler;
+                drone = await GenerateBindSmbDrone(smbHandler.PipeName);
+                
+                break;
+            }
             
             default:
                 throw new ArgumentOutOfRangeException();
@@ -85,6 +90,7 @@ public class PayloadService : IPayloadService
             PayloadFormat.SVC_EXE => await BuildServiceExe(drone),
             PayloadFormat.POWERSHELL => await BuildPowerShellScript(drone),
             PayloadFormat.SHELLCODE => await BuildShellcode(drone),
+            PayloadFormat.ASSEMBLY => drone,
             
             _ => throw new ArgumentOutOfRangeException(nameof(format), format, null)
         };

@@ -13,5 +13,6 @@ public enum PayloadFormat
     DLL,
     SVC_EXE,
     POWERSHELL,
-    SHELLCODE
+    SHELLCODE,
+    ASSEMBLY
 }
