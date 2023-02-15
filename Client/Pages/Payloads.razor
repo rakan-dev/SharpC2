@@ -2,11 +2,12 @@
 @page "/payloads"
 
 @inject SharpC2Api Api
-@inject IJSRuntime Js
+@inject IFileSaver FileSaver
 @inject IDialogService Dialogs
 
 @using Client.Models.Handlers
 @using Client.Components.Handlers
+@using CommunityToolkit.Maui.Storage
 
 <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge">
     
@@ -62,15 +63,22 @@
 
     private async Task Download()
     {
-        await using var response = await Api.GeneratePayload(_selectedHandler, _formats[_selectedFormat]);
-        using var sr = new DotNetStreamReference(response);
+        await using var ms = await Api.GeneratePayload(_selectedHandler, _formats[_selectedFormat]);
+        
+        // clicking "cancel" throws an exception
+        try
+        {
+            var path = await FileSaver.SaveAsync(FileName, ms, CancellationToken.None);
 
-        await Js.InvokeVoidAsync("downloadFileFromStream", FileName, sr);
-
-        var options = new DialogOptions { NoHeader = false };
-        await Dialogs.ShowMessageBox("Success",
-            $"Saved {FileName} to Downloads folder",
-            "OK", null, null, options);
+            var options = new DialogOptions { NoHeader = false };
+            await Dialogs.ShowMessageBox("Success",
+                $"Saved to {path}",
+                "OK", null, null, options);
+        }
+        catch (FileSaveException)
+        {
+            // ignore
+        }
     }
 
     private async Task Host()

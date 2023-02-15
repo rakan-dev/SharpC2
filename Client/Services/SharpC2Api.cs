@@ -251,10 +251,14 @@ public class SharpC2Api
         await _client.ExecuteAsync(request);
     }
 
-    public async Task<Stream> GeneratePayload(Handler handler, int format)
+    public async Task<MemoryStream> GeneratePayload(Handler handler, int format)
     {
         var request = new RestRequest($"{SharpC2.API.Routes.V1.Payloads}?handler={handler.Name}&format={format}");
-        return await _client.DownloadStreamAsync(request);
+        var response = await _client.DownloadDataAsync(request);
+        
+        return response is null
+            ? new MemoryStream()
+            : new MemoryStream(response);
     }
 
     public async Task<IEnumerable<WebLogEvent>> GetWebLogs()
