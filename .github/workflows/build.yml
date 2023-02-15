@@ -48,13 +48,13 @@ jobs:
         run: certutil -user -q -p ${{ secrets.PFX_PASSWORD }} -importpfx cert.pfx NoRoot
 
       - name: Build MAUI
-        run: dotnet publish Client/Client.csproj -c Release -f net7.0-windows10.0.22000.0 --no-restore
+        run: dotnet publish Client/Client.csproj -c Release -f net7.0-windows10.0.19041.0 --no-restore
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
           name: client-windows
-          path: Client/bin/Release/net7.0-windows10.0.22000.0/win10-x64/AppPackages/Client*/Client*.msix
+          path: Client/bin/Release/net7.0-windows10.0.19041.0/win10-x64/AppPackages/Client*/Client*.msix
 
   build-teamserver-linux:
     name: Linux Team Server Build
