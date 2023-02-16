@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using DInvoke.DynamicInvoke;
 
-namespace Drone.Utilities;
+namespace Drone.Utilities.PELoader;
 
 public sealed class ExitPatcher
 {
@@ -16,17 +16,9 @@ public sealed class ExitPatcher
     {
         var pExitThreadFunc = Generic.GetLibraryAddress("kernelbase.dll", "ExitThread");
         var exitThreadPatchBytes = new List<byte> { 0x48, 0xC7, 0xC1, 0x00, 0x00, 0x00, 0x00, 0x48, 0xB8 };
-        /*
-            mov rcx, 0x0 #takes first arg
-            mov rax, <ExitThread> # 
-            push rax
-            ret
-         */
-
         var pointerBytes = BitConverter.GetBytes(pExitThreadFunc.ToInt64());
 
         exitThreadPatchBytes.AddRange(pointerBytes);
-
         exitThreadPatchBytes.Add(0x50);
         exitThreadPatchBytes.Add(0xC3);
 

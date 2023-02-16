@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 using Drone.Interop;
 
-namespace Drone.Utilities;
+namespace Drone.Utilities.PELoader;
+
+using static Data;
 
 public sealed class FileDescriptorPair
 {
@@ -17,11 +19,6 @@ public sealed class FileDescriptorPair
 
 public sealed class FileDescriptorRedirector
 {
-    private const int STD_INPUT_HANDLE = -10;
-    private const int STD_OUTPUT_HANDLE = -11;
-    private const int STD_ERROR_HANDLE = -12;
-    private const uint BYTES_TO_READ = 1024;
-
     private IntPtr _oldGetStdHandleOut;
     private IntPtr _oldGetStdHandleIn;
     private IntPtr _oldGetStdHandleError;
@@ -135,7 +132,6 @@ public sealed class FileDescriptorRedirector
     {
         try
         {
-            // Need to close write before read else it hangs as could still be writing
             if (stdoutDescriptors.Write != IntPtr.Zero)
                 Methods.CloseHandle(stdoutDescriptors.Write);
 
@@ -144,7 +140,7 @@ public sealed class FileDescriptorRedirector
         }
         catch
         {
-            //
+            // meh
         }
     }
 

@@ -5,17 +5,20 @@ namespace Drone.Interop;
 
 public static class Data
 {
-    public const uint DUPLICATE_CLOSE_SOURCE = 0x00000001;
-    public const uint DUPLICATE_SAME_ACCESS = 0x00000002;
-    
-    public const int PROC_THREAD_ATTRIBUTE_PARENT_PROCESS = 0x00020000;
-    public const int PROC_THREAD_ATTRIBUTE_MITIGATION_POLICY = 0x00020007;
-    
-    public const int STARTF_USESTDHANDLES = 0x00000100;
-    public const int STARTF_USESHOWWINDOW = 0x00000001;
-    public const short SW_HIDE = 0x0000;
-    
-    public const long BLOCK_NON_MICROSOFT_BINARIES_ALWAYS_ON = 0x100000000000;
+    public const int PEB_RTL_USER_PROCESS_PARAMETERS_OFFSET = 0x20;
+    public const int RTL_USER_PROCESS_PARAMETERS_COMMANDLINE_OFFSET = 0x70;
+    public const int RTL_USER_PROCESS_PARAMETERS_MAX_LENGTH_OFFSET = 2;
+    public const int RTL_USER_PROCESS_PARAMETERS_IMAGE_OFFSET = 0x60;
+    public const int UNICODE_STRING_STRUCT_STRING_POINTER_OFFSET = 0x8;
+    public const int PEB_BASE_ADDRESS_OFFSET = 0x10;
+    public const int STD_INPUT_HANDLE = -10;
+    public const int STD_OUTPUT_HANDLE = -11;
+    public const int STD_ERROR_HANDLE = -12;
+    public const uint BYTES_TO_READ = 1024;
+    public const int IDT_SINGLE_ENTRY_LENGTH = 20;
+    public const int IDT_IAT_OFFSET = 16;
+    public const int IDT_DLL_NAME_OFFSET = 12;
+    public const int ILT_HINT_LENGTH = 2;
     
     public const uint IMAGE_SCN_MEM_EXECUTE = 0x20000000;
     public const uint IMAGE_SCN_MEM_READ = 0x40000000;
@@ -306,5 +309,186 @@ public static class Data
     {
         public uint VirtualAdress;
         public uint SizeOfBlock;
+    }
+    
+    public struct IMAGE_DOS_HEADER
+    {
+        // DOS .EXE header
+        public ushort e_magic; // Magic number
+        public ushort e_cblp; // Bytes on last page of file
+        public ushort e_cp; // Pages in file
+        public ushort e_crlc; // Relocations
+        public ushort e_cparhdr; // Size of header in paragraphs
+        public ushort e_minalloc; // Minimum extra paragraphs needed
+        public ushort e_maxalloc; // Maximum extra paragraphs needed
+        public ushort e_ss; // Initial (relative) SS value
+        public ushort e_sp; // Initial SP value
+        public ushort e_csum; // Checksum
+        public ushort e_ip; // Initial IP value
+        public ushort e_cs; // Initial (relative) CS value
+        public ushort e_lfarlc; // File address of relocation table
+        public ushort e_ovno; // Overlay number
+        public ushort e_res_0; // Reserved words
+        public ushort e_res_1; // Reserved words
+        public ushort e_res_2; // Reserved words
+        public ushort e_res_3; // Reserved words
+        public ushort e_oemid; // OEM identifier (for e_oeminfo)
+        public ushort e_oeminfo; // OEM information; e_oemid specific
+        public ushort e_res2_0; // Reserved words
+        public ushort e_res2_1; // Reserved words
+        public ushort e_res2_2; // Reserved words
+        public ushort e_res2_3; // Reserved words
+        public ushort e_res2_4; // Reserved words
+        public ushort e_res2_5; // Reserved words
+        public ushort e_res2_6; // Reserved words
+        public ushort e_res2_7; // Reserved words
+        public ushort e_res2_8; // Reserved words
+        public ushort e_res2_9; // Reserved words
+        public uint e_lfanew; // File address of new exe header
+    }
+    
+    [StructLayout(LayoutKind.Sequential)]
+    public struct IMAGE_DATA_DIRECTORY
+    {
+        public uint VirtualAddress;
+        public uint Size;
+    }
+    
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct IMAGE_OPTIONAL_HEADER32
+    {
+        public ushort Magic;
+        public byte MajorLinkerVersion;
+        public byte MinorLinkerVersion;
+        public uint SizeOfCode;
+        public uint SizeOfInitializedData;
+        public uint SizeOfUninitializedData;
+        public uint AddressOfEntryPoint;
+        public uint BaseOfCode;
+        public uint BaseOfData;
+        public uint ImageBase;
+        public uint SectionAlignment;
+        public uint FileAlignment;
+        public ushort MajorOperatingSystemVersion;
+        public ushort MinorOperatingSystemVersion;
+        public ushort MajorImageVersion;
+        public ushort MinorImageVersion;
+        public ushort MajorSubsystemVersion;
+        public ushort MinorSubsystemVersion;
+        public uint Win32VersionValue;
+        public uint SizeOfImage;
+        public uint SizeOfHeaders;
+        public uint CheckSum;
+        public ushort Subsystem;
+        public ushort DllCharacteristics;
+        public uint SizeOfStackReserve;
+        public uint SizeOfStackCommit;
+        public uint SizeOfHeapReserve;
+        public uint SizeOfHeapCommit;
+        public uint LoaderFlags;
+        public uint NumberOfRvaAndSizes;
+
+        public IMAGE_DATA_DIRECTORY ExportTable;
+        public IMAGE_DATA_DIRECTORY ImportTable;
+        public IMAGE_DATA_DIRECTORY ResourceTable;
+        public IMAGE_DATA_DIRECTORY ExceptionTable;
+        public IMAGE_DATA_DIRECTORY CertificateTable;
+        public IMAGE_DATA_DIRECTORY BaseRelocationTable;
+        public IMAGE_DATA_DIRECTORY Debug;
+        public IMAGE_DATA_DIRECTORY Architecture;
+        public IMAGE_DATA_DIRECTORY GlobalPtr;
+        public IMAGE_DATA_DIRECTORY TLSTable;
+        public IMAGE_DATA_DIRECTORY LoadConfigTable;
+        public IMAGE_DATA_DIRECTORY BoundImport;
+        public IMAGE_DATA_DIRECTORY IAT;
+        public IMAGE_DATA_DIRECTORY DelayImportDescriptor;
+        public IMAGE_DATA_DIRECTORY CLRRuntimeHeader;
+        public IMAGE_DATA_DIRECTORY Reserved;
+    }
+    
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct IMAGE_OPTIONAL_HEADER64
+    {
+        public ushort Magic;
+        public byte MajorLinkerVersion;
+        public byte MinorLinkerVersion;
+        public uint SizeOfCode;
+        public uint SizeOfInitializedData;
+        public uint SizeOfUninitializedData;
+        public uint AddressOfEntryPoint;
+        public uint BaseOfCode;
+        public ulong ImageBase;
+        public uint SectionAlignment;
+        public uint FileAlignment;
+        public ushort MajorOperatingSystemVersion;
+        public ushort MinorOperatingSystemVersion;
+        public ushort MajorImageVersion;
+        public ushort MinorImageVersion;
+        public ushort MajorSubsystemVersion;
+        public ushort MinorSubsystemVersion;
+        public uint Win32VersionValue;
+        public uint SizeOfImage;
+        public uint SizeOfHeaders;
+        public uint CheckSum;
+        public ushort Subsystem;
+        public ushort DllCharacteristics;
+        public ulong SizeOfStackReserve;
+        public ulong SizeOfStackCommit;
+        public ulong SizeOfHeapReserve;
+        public ulong SizeOfHeapCommit;
+        public uint LoaderFlags;
+        public uint NumberOfRvaAndSizes;
+
+        public IMAGE_DATA_DIRECTORY ExportTable;
+        public IMAGE_DATA_DIRECTORY ImportTable;
+        public IMAGE_DATA_DIRECTORY ResourceTable;
+        public IMAGE_DATA_DIRECTORY ExceptionTable;
+        public IMAGE_DATA_DIRECTORY CertificateTable;
+        public IMAGE_DATA_DIRECTORY BaseRelocationTable;
+        public IMAGE_DATA_DIRECTORY Debug;
+        public IMAGE_DATA_DIRECTORY Architecture;
+        public IMAGE_DATA_DIRECTORY GlobalPtr;
+        public IMAGE_DATA_DIRECTORY TLSTable;
+        public IMAGE_DATA_DIRECTORY LoadConfigTable;
+        public IMAGE_DATA_DIRECTORY BoundImport;
+        public IMAGE_DATA_DIRECTORY IAT;
+        public IMAGE_DATA_DIRECTORY DelayImportDescriptor;
+        public IMAGE_DATA_DIRECTORY CLRRuntimeHeader;
+        public IMAGE_DATA_DIRECTORY Reserved;
+    }
+    
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct IMAGE_FILE_HEADER
+    {
+        public ushort Machine;
+        public ushort NumberOfSections;
+        public uint TimeDateStamp;
+        public uint PointerToSymbolTable;
+        public uint NumberOfSymbols;
+        public ushort SizeOfOptionalHeader;
+        public ushort Characteristics;
+    }
+    
+    [StructLayout(LayoutKind.Explicit)]
+    public struct IMAGE_SECTION_HEADER
+    {
+        [FieldOffset(0)] [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
+        public char[] Name;
+
+        [FieldOffset(8)] public uint VirtualSize;
+        [FieldOffset(12)] public uint VirtualAddress;
+        [FieldOffset(16)] public uint SizeOfRawData;
+        [FieldOffset(20)] public uint PointerToRawData;
+        [FieldOffset(24)] public uint PointerToRelocations;
+        [FieldOffset(28)] public uint PointerToLinenumbers;
+        [FieldOffset(32)] public ushort NumberOfRelocations;
+        [FieldOffset(34)] public ushort NumberOfLinenumbers;
+        [FieldOffset(36)] public DataSectionFlags Characteristics;
+    }
+    
+    [Flags]
+    public enum DataSectionFlags : uint
+    {
+        Stub = 0x00000000,
     }
 }

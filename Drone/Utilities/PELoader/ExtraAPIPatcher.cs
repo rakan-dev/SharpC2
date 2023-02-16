@@ -7,7 +7,7 @@ using System.Text;
 using Drone.Interop;
 using DInvoke.DynamicInvoke;
 
-namespace Drone.Utilities;
+namespace Drone.Utilities.PELoader;
 
 public sealed class ExtraAPIPatcher
 {
@@ -30,14 +30,7 @@ public sealed class ExtraAPIPatcher
 
     private bool PatchAPIToJmpToNewFunc(int patchLength)
     {
-        // Patch the API to jump to out new func code
         var pointerBytes = BitConverter.GetBytes(_newFuncAlloc.ToInt64());
-
-        /*
-            0:  48 b8 88 77 66 55 44    movabs rax,<address of newFunc>
-            7:  33 22 11
-            a:  ff e0                   jmp    rax
-         */
 
         var patchBytes = new List<byte> { 0x48, 0xB8 };
         patchBytes.AddRange(pointerBytes);
@@ -54,12 +47,12 @@ public sealed class ExtraAPIPatcher
 
         _originalGetModuleHandleBytes =
             Helpers.PatchFunction("kernelbase.dll", _getModuleHandleFuncName, patchBytes.ToArray());
+        
         return _originalGetModuleHandleBytes != null;
     }
 
     private IntPtr WriteNewFuncToMemory(IntPtr baseAddress, IntPtr getModuleHandleFuncAddress, int patchLength)
     {
-        // Write some code to memory that will return our base address if arg0 is null or revert back to GetModuleAddress if not.
         var newFuncBytes = new List<byte>
         {
             0x48, 0x85, 0xc9, 0x75, 0x0b,
@@ -70,7 +63,6 @@ public sealed class ExtraAPIPatcher
         var baseAddressPointerBytes = BitConverter.GetBytes(baseAddress.ToInt64());
 
         newFuncBytes.AddRange(baseAddressPointerBytes);
-
         newFuncBytes.Add(0xC3);
         newFuncBytes.Add(0x48);
         newFuncBytes.Add(0xB8);
@@ -86,17 +78,6 @@ public sealed class ExtraAPIPatcher
 
         newFuncBytes.Add(0xFF);
         newFuncBytes.Add(0xE0);
-        /*
-        0:  48 85 c9                test   rcx,rcx
-        3:  75 0b                   jne    +0x0b
-        5:  48 b8 88 77 66 55 44    movabs rax,<Base Address of mapped PE>
-        c:  33 22 11
-        f:  c3                      ret
-        10:  48 b8 88 77 66 55 44   movabs rax,<Back to GetModuleHandle>
-        17:  33 22 11
-        ... original replaced opcodes...
-        1a:  ff e0                  jmp    rax
-        */
 
         Methods.NtAllocateVirtualMemory(
             new IntPtr(-1),

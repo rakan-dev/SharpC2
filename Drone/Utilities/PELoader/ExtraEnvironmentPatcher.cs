@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using Drone.Interop;
 
-namespace Drone.Utilities;
+namespace Drone.Utilities.PELoader;
+
+using static Data;
 
 public sealed class ExtraEnvironmentPatcher
 {
-    private const int PEB_BASE_ADDRESS_OFFSET = 0x10;
-
     private IntPtr _pOriginalPebBaseAddress;
     private IntPtr _pPEBBaseAddr;
-
     private IntPtr _newPEBaseAddress;
 
     public ExtraEnvironmentPatcher(IntPtr newPEBaseAddress)

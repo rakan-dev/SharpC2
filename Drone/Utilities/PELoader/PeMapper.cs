@@ -3,16 +3,16 @@ using System.Runtime.InteropServices;
 
 using Drone.Interop;
 
-namespace Drone.Utilities;
+namespace Drone.Utilities.PELoader;
 
-public sealed class PEMapper
+public sealed class PeMapper
 {
     private IntPtr _codebase;
-    private PELoader _pe;
+    private PeLoader _pe;
 
-    public void MapPEIntoMemory(byte[] unpacked, out PELoader peLoader, out long currentBase)
+    public void MapPEIntoMemory(byte[] unpacked, out PeLoader peLoader, out long currentBase)
     {
-        _pe = peLoader = new PELoader(unpacked);
+        _pe = peLoader = new PeLoader(unpacked);
 
         Methods.NtAllocateVirtualMemory(
             new IntPtr(-1),
@@ -23,8 +23,7 @@ public sealed class PEMapper
 
         currentBase = _codebase.ToInt64();
 
-        // Copy Sections
-        for (var i = 0; i < _pe.FileHeader.NumberOfSections; i++)
+        for (var i = 0; i < _pe.ImageFileHeader.NumberOfSections; i++)
         {
             var y = (IntPtr)(currentBase + _pe.ImageSectionHeaders[i].VirtualAddress);
 
@@ -41,10 +40,7 @@ public sealed class PEMapper
             }
         }
 
-        // Perform Base Relocation
         var delta = currentBase - (long)_pe.OptionalHeader64.ImageBase;
-
-        // Modify Memory Based On Relocation Table
         var relocationTable = (IntPtr)(currentBase + (int)_pe.OptionalHeader64.BaseRelocationTable.VirtualAddress);
         var relocationEntry = Marshal.PtrToStructure<Data.IMAGE_BASE_RELOCATION>(relocationTable);
 
@@ -101,7 +97,7 @@ public sealed class PEMapper
 
     public void SetPagePermissions()
     {
-        for (var i = 0; i < _pe.FileHeader.NumberOfSections; i++)
+        for (var i = 0; i < _pe.ImageFileHeader.NumberOfSections; i++)
         {
             var execute = ((uint)_pe.ImageSectionHeaders[i].Characteristics & Data.IMAGE_SCN_MEM_EXECUTE) != 0;
             var read = ((uint)_pe.ImageSectionHeaders[i].Characteristics & Data.IMAGE_SCN_MEM_READ) != 0;
@@ -133,9 +129,6 @@ public sealed class PEMapper
             {
                 protection = Data.MEMORY_PROTECTION.PAGE_NOACCESS;
             }
-
-            // var y = NativeDeclarations.VirtualProtect((IntPtr) (_codebase.ToInt64() + _pe.ImageSectionHeaders[i].VirtualAddress),
-            //     (UIntPtr) _pe.ImageSectionHeaders[i].SizeOfRawData, protection, out _);
 
             Methods.NtProtectVirtualMemory(
                 new IntPtr(-1),

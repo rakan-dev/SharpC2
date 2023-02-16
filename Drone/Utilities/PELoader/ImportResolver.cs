@@ -7,25 +7,20 @@ using System.Runtime.InteropServices;
 using DInvoke.DynamicInvoke;
 using Drone.Interop;
 
-namespace Drone.Utilities;
+namespace Drone.Utilities.PELoader;
+
+using static Data;
 
 public sealed class ImportResolver
 {
-    private const int IDT_SINGLE_ENTRY_LENGTH = 20;
-    private const int IDT_IAT_OFFSET = 16;
-    private const int IDT_DLL_NAME_OFFSET = 12;
-    private const int ILT_HINT_LENGTH = 2;
-
     private readonly List<string> _originalModules = new();
 
-    public void ResolveImports(PELoader pe, long currentBase)
+    public void ResolveImports(PeLoader pe, long currentBase)
     {
-        // Save the current loaded modules so can unload new ones afterwards
         using var currentProcess = Process.GetCurrentProcess();
         foreach (ProcessModule module in currentProcess.Modules)
             _originalModules.Add(module.ModuleName);
 
-        // Resolve Imports
         var pIDT = (IntPtr)(currentBase + pe.OptionalHeader64.ImportTable.VirtualAddress);
         var dllIterator = 0;
         

@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Drone.Interop;
+using Drone.Utilities.PELoader;
 
 namespace Drone.Commands;
 
@@ -20,7 +21,7 @@ public class RunPe : DroneCommand
             return;
         }
         
-        var peMapper = new PEMapper();
+        var peMapper = new PeMapper();
         peMapper.MapPEIntoMemory(task.Artefact, out var pe, out var currentBase);
         
         var importResolver = new ImportResolver();
@@ -79,7 +80,7 @@ public class RunPe : DroneCommand
         await Drone.SendTaskOutput(task.Id, output);
     }
     
-    private static void StartExecution(PELoader pe, long currentBase)
+    private static void StartExecution(PeLoader pe, long currentBase)
     {
         try
         {

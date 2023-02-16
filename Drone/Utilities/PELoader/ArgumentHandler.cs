@@ -5,16 +5,12 @@ using System.Text;
 
 using Drone.Interop;
 
-namespace Drone.Utilities;
+namespace Drone.Utilities.PELoader;
 
-internal class ArgumentHandler
+using static Data;
+
+public sealed class ArgumentHandler
 {
-    private const int PEB_RTL_USER_PROCESS_PARAMETERS_OFFSET = 0x20;
-    private const int RTL_USER_PROCESS_PARAMETERS_COMMANDLINE_OFFSET = 0x70;
-    private const int RTL_USER_PROCESS_PARAMETERS_MAX_LENGTH_OFFSET = 2;
-    private const int RTL_USER_PROCESS_PARAMETERS_IMAGE_OFFSET = 0x60;
-    private const int UNICODE_STRING_STRUCT_STRING_POINTER_OFFSET = 0x8;
-
     private byte[] _originalCommandLineFuncBytes;
     private IntPtr _ppCommandLineString;
     private IntPtr _ppImageString;
@@ -31,13 +27,19 @@ internal class ArgumentHandler
     public bool UpdateArgs(string filename, string[] args)
     {
         var pPEB = Helpers.GetPointerToPeb();
+        
         if (pPEB == IntPtr.Zero)
-        {
             return false;
-        }
 
-        GetPebCommandLineAndImagePointers(pPEB, out _ppCommandLineString, out _pOriginalCommandLineString,
-            out _ppImageString, out _pOriginalImageString, out _pLength, out _originalLength, out _pMaxLength,
+        GetPebCommandLineAndImagePointers(
+            pPEB,
+            out _ppCommandLineString,
+            out _pOriginalCommandLineString,
+            out _ppImageString,
+            out _pOriginalImageString,
+            out _pLength,
+            out _originalLength,
+            out _pMaxLength,
             out _originalMaxLength);
 
         var newCommandLineString = $"\"{filename}\" {string.Join(" ", args)}";
@@ -66,31 +68,24 @@ internal class ArgumentHandler
         if (commandLineString != null)
         {
             var stringBytes = new byte[commandLineString.Length];
-
-            // Copy the command line string bytes into an array and check if it contains null bytes (so if it is wide or not
-            Marshal.Copy(pCommandLineString, stringBytes, 0,
-                commandLineString.Length); // Even if ASCII won't include null terminating byte
+            Marshal.Copy(pCommandLineString, stringBytes, 0, commandLineString.Length);
 
             if (!new List<byte>(stringBytes).Contains(0x00))
-                _encoding = Encoding.ASCII; // At present assuming either ASCII or UTF8
+                _encoding = Encoding.ASCII;
         }
 
-        // Set the GetCommandLine func based on the determined encoding
         _commandLineFunc = _encoding.Equals(Encoding.ASCII) ? "GetCommandLineA" : "GetCommandLineW";
 
-        // Write the new command line string into memory
         _pNewString = _encoding.Equals(Encoding.ASCII)
             ? Marshal.StringToHGlobalAnsi(newCommandLineString)
             : Marshal.StringToHGlobalUni(newCommandLineString);
 
-        // Create the patch bytes that provide the new string pointer
-        var patchBytes = new List<byte> { 0x48, 0xB8 }; // TODO architecture
+        var patchBytes = new List<byte> { 0x48, 0xB8 };
         var pointerBytes = BitConverter.GetBytes(_pNewString.ToInt64());
 
         patchBytes.AddRange(pointerBytes);
         patchBytes.Add(0xC3);
 
-        // Patch the GetCommandLine function to return the new string
         _originalCommandLineFuncBytes = Helpers.PatchFunction("kernelbase.dll", _commandLineFunc, patchBytes.ToArray());
         return _originalCommandLineFuncBytes != null;
     }
