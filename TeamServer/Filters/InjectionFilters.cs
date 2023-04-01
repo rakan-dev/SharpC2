@@ -34,7 +34,7 @@ public sealed class InjectionFilters : IAsyncActionFilter
                         {
                             // args[0] == pid
                             // args[1] == handler
-                            var handler = _handlers.Get<Handler>(taskRequest.Arguments[1]);
+                            var handler = _handlers.Get<Handler>(taskRequest.Arguments["handler"]);
                         
                             if (handler is null)
                                 throw new ArgumentException("Handler not found");
@@ -43,7 +43,7 @@ public sealed class InjectionFilters : IAsyncActionFilter
                             taskRequest.Artefact = await _payloads.GeneratePayload(handler, PayloadFormat.SHELLCODE);
                         
                             // remove handler name from task
-                            taskRequest.Arguments = taskRequest.Arguments.SkipLast(1).ToArray();
+                            taskRequest.Arguments.Remove("handler");
                         }
                     }
                 }

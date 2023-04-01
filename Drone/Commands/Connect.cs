@@ -12,8 +12,8 @@ public sealed class Connect : DroneCommand
     
     public override async Task Execute(DroneTask task, CancellationToken cancellationToken)
     {
-        var address = task.Arguments[0];
-        var port = int.Parse(task.Arguments[1]);
+        var address = task.Arguments["target"];
+        var port = int.Parse(task.Arguments["port"]);
         var commModule = new TcpCommModule(address, port);
         
         await Drone.AddChildCommModule(task.Id, commModule);

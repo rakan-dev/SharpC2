@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+
 using DInvoke.Data;
 
 namespace Drone.Commands;
@@ -16,7 +17,7 @@ public class ShInject : DroneCommand
     public override async Task Execute(DroneTask task, CancellationToken cancellationToken)
     {
         // parse target pid
-        var pid = uint.Parse(task.Arguments[0]);
+        var pid = uint.Parse(task.Arguments["pid"]);
         
         // open handle to target process
         var hProcess = IntPtr.Zero;

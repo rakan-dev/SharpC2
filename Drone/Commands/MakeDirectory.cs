@@ -11,7 +11,7 @@ public sealed class MakeDirectory : DroneCommand
 
     public override Task Execute(DroneTask task, CancellationToken cancellationToken)
     {
-        _ = Directory.CreateDirectory(task.Arguments[0]);
+        _ = Directory.CreateDirectory(task.Arguments["path"]);
         return Task.CompletedTask;
     }
 }

@@ -42,7 +42,11 @@
         {
             Command = 0x01,
             Alias = "sleep",
-            Arguments = new[] { _sleep.ToString(), _jitter.ToString() },
+            Arguments = new Dictionary<string, string>
+            {
+                { "interval", _sleep.ToString() },
+                { "jitter", _jitter.ToString() }
+            },
             ResultType = 0
         };
 

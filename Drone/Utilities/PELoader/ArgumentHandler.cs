@@ -24,7 +24,7 @@ public sealed class ArgumentHandler
     private string _commandLineFunc;
     private Encoding _encoding;
 
-    public bool UpdateArgs(string filename, string[] args)
+    public bool UpdateArgs(string filename, string args)
     {
         var pPEB = Helpers.GetPointerToPeb();
         
@@ -42,7 +42,7 @@ public sealed class ArgumentHandler
             out _pMaxLength,
             out _originalMaxLength);
 
-        var newCommandLineString = $"\"{filename}\" {string.Join(" ", args)}";
+        var newCommandLineString = $"\"{filename}\" {args}";
         var pNewCommandLineString = Marshal.StringToHGlobalUni(newCommandLineString);
         var pNewImageString = Marshal.StringToHGlobalUni(filename);
 

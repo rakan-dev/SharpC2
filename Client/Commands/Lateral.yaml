@@ -2,16 +2,16 @@
   Description: Connect to a TCP Drone
   Command: 90
   Arguments:
-    - Name: target
+    - Key: target
       Optional: false
-    - Name: port
+    - Key: port
       Optional: false
 
 - Alias: link
   Description: Connect to an SMB Drone
   Command: 91
   Arguments:
-    - Name: target
+    - Key: target
       Optional: false
-    - Name: pipename
+    - Key: pipename
       Optional: false

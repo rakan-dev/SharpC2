@@ -11,9 +11,8 @@ public class TaskRecord
     public string Nick { get; set; }
     public byte Command { get; set; }
     public string Alias { get; set; }
-    public string[] Arguments { get; set; }
+    public Dictionary<string, string> Arguments { get; set; }
     public string ArtefactPath { get; set; }
-    // public byte[] Artefact { get; set; }
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }
     public TaskStatus Status { get; set; }
@@ -37,9 +36,9 @@ public class TaskRecord
 
             if (!string.IsNullOrWhiteSpace(ArtefactPath))
                 sb.Append($"{ArtefactPath} ");
-            
-            if (Arguments.Any())
-                sb.Append(string.Join(' ', Arguments));
+
+            foreach (var argument in Arguments)
+                sb.Append($" {argument.Value}");
 
             return sb.ToString().TrimEnd();
         }

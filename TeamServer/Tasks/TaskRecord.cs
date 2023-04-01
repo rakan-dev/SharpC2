@@ -13,7 +13,7 @@ public sealed class TaskRecord
     public string Nick { get; set; }
     public byte Command { get; set; }
     public string Alias { get; set; }
-    public string[] Arguments { get; set; }
+    public Dictionary<string, string> Arguments { get; set; }
     public string ArtefactPath { get; set; }
     public byte[] Artefact { get; set; }
     public DateTime StartTime { get; set; }
@@ -73,7 +73,6 @@ public sealed class TaskRecord
             Alias = record.Alias,
             Arguments = record.Arguments,
             ArtefactPath = record.ArtefactPath,
-            //Artefact = record.Artefact,
             StartTime = record.StartTime,
             EndTime = record.EndTime,
             Status = (int)record.Status,
@@ -89,5 +88,5 @@ public enum TaskStatus
     TASKED,
     RUNNING,
     COMPLETE,
-    ABORTED,
+    ABORTED
 }

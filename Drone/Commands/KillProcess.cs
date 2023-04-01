@@ -11,7 +11,7 @@ public class KillProcess : DroneCommand
     
     public override Task Execute(DroneTask task, CancellationToken cancellationToken)
     {
-        var pid = task.Arguments[0];
+        var pid = task.Arguments["pid"];
         
         using var process = Process.GetProcessById(int.Parse(pid));
         process.Kill();

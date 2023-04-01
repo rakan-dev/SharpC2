@@ -11,7 +11,7 @@ public sealed class UploadFile : DroneCommand
 
     public override Task Execute(DroneTask task, CancellationToken cancellationToken)
     {
-        File.WriteAllBytes(task.Arguments[0], task.Artefact);
+        File.WriteAllBytes(task.Arguments["path"], task.Artefact);
         return Task.CompletedTask;
     }
 }

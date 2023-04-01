@@ -11,7 +11,10 @@ public sealed class RemoveDirectory : DroneCommand
 
     public override Task Execute(DroneTask task, CancellationToken cancellationToken)
     {
-        Directory.Delete(task.Arguments[0], true);
+        if (!task.Arguments.TryGetValue("recursive", out var recurse))
+            recurse = "true";
+
+        Directory.Delete(task.Arguments["path"], bool.Parse(recurse));
         return Task.CompletedTask;
     }
 }

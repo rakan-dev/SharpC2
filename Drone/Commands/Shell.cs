@@ -17,7 +17,7 @@ public sealed class Shell : DroneCommand
             StartInfo = new ProcessStartInfo
             {
                 FileName = @"C:\Windows\System32\cmd.exe",
-                Arguments = $"/c {string.Join(" ", task.Arguments)}",
+                Arguments = $"/c {task.Arguments["args"]}",
                 CreateNoWindow = true,
                 WindowStyle = ProcessWindowStyle.Hidden,
                 RedirectStandardOutput = true,

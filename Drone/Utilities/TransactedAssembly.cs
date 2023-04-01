@@ -33,9 +33,11 @@ public sealed class TransactedAssembly : IDisposable
         _hooks = new HookEngine();
     }
 
-    public Assembly Load(byte[] assemblyBytes)
+    public Assembly Load(byte[] assemblyBytes, string assemblyName)
     {
-        _assemblyName = ParseArray(assemblyBytes);
+        _assemblyName = string.IsNullOrWhiteSpace(assemblyName)
+            ? ParseArray(assemblyBytes)
+            : Encoding.Unicode.GetString(Encoding.Convert(Encoding.ASCII, Encoding.Unicode, Encoding.ASCII.GetBytes(assemblyName)));
 
         ushort miniVersion = 0xffff;
         var transactionHandle = IntPtr.Zero;
@@ -103,6 +105,7 @@ public sealed class TransactedAssembly : IDisposable
         try
         {
             a = Assembly.Load(_assemblyName.Substring(0, _assemblyName.Length - 4));
+            //a = Assembly.Load(_assemblyName);
         }
         catch
         {

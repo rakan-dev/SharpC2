@@ -32,9 +32,12 @@ public sealed class PowerShell : DroneCommand
             runner.ImportScript(script);
         }
 
-        var command = string.Join(" ", task.Arguments);
+        var command = task.Arguments["cmdlet"];
+
+        if (task.Arguments.TryGetValue("args", out var args))
+            command += $" {args}";
+
         var result = runner.Invoke(command);
-            
         await Drone.SendTaskOutput(task.Id, result);
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,10 +12,9 @@ public sealed class ChangeDirectory : DroneCommand
 
     public override Task Execute(DroneTask task, CancellationToken cancellationToken)
     {
-        var path = task.Arguments.Any()
-            ? task.Arguments[0]
-            : Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-        
+        if (!task.Arguments.TryGetValue("path", out var path))
+            path = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+
         Directory.SetCurrentDirectory(path);
         return Task.CompletedTask;
     }

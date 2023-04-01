@@ -14,7 +14,7 @@ public class DroneTask
     public byte Command { get; set; }
 
     [ProtoMember(3)]
-    public string[] Arguments { get; set; }
+    public Dictionary<string, string> Arguments { get; set; }
 
     [ProtoMember(4)]
     public byte[] Artefact { get; set; }

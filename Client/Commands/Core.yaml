@@ -2,9 +2,9 @@
   Description: Set the Drone's sleep and jitter
   Command: 1
   Arguments:
-    - Name: sleep
+    - Key: sleep
       Optional: false
-    - Name: jitter
+    - Key: jitter
 
 - Alias: exit
   Description: Instruct the Drone to exit

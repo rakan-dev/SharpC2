@@ -13,9 +13,9 @@ public sealed class DroneCommand
 
 public sealed class CommandArgument
 {
-    public string Name { get; set; } = "";
+    public string Key { get; set; } = "";
     public ArgumentType Type { get; set; } = ArgumentType.STRING;
-    public string DefaultValue { get; set; } = "";
+    public string Value { get; set; } = "";
     public bool Optional { get; set; } = true;
 }
 

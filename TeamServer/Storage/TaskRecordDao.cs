@@ -1,50 +1,38 @@
 ﻿using SQLite;
 
 using TeamServer.Tasks;
+using TeamServer.Utilities;
 
 namespace TeamServer.Storage;
 
 [Table("tasks")]
 public sealed class TaskRecordDao
 {
-    [PrimaryKey, Column("task_id")]
-    public string TaskId { get; set; }
+    [PrimaryKey, Column("task_id")] public string TaskId { get; set; }
 
-    [Column("drone_id")]
-    public string DroneId { get; set; }
+    [Column("drone_id")] public string DroneId { get; set; }
 
-    [Column("nick")]
-    public string Nick { get; set; }
+    [Column("nick")] public string Nick { get; set; }
 
-    [Column("command")]
-    public byte Command { get; set; }
+    [Column("command")] public byte Command { get; set; }
 
-    [Column("alias")]
-    public string Alias { get; set; }
+    [Column("alias")] public string Alias { get; set; }
 
-    [Column("arguments")]
-    public string Arguments { get; set; } // can't store as string[]
+    [Column("arguments")] public byte[] Arguments { get; set; } // can't store as a dict
 
-    [Column("artefact_path")]
-    public string ArtefactPath { get; set; }
+    [Column("artefact_path")] public string ArtefactPath { get; set; }
 
-    [Column("artefact")]
-    public byte[] Artefact { get; set; }
+    [Column("artefact")] public byte[] Artefact { get; set; }
 
-    [Column("start_time")]
-    public DateTime StartTime { get; set; }
+    [Column("start_time")] public DateTime StartTime { get; set; }
 
-    [Column("end_time")]
-    public DateTime EndTime { get; set; }
+    [Column("end_time")] public DateTime EndTime { get; set; }
 
-    [Column("status")]
-    public int Status { get; set; }
+    [Column("status")] public int Status { get; set; }
 
-    [Column("result_type")]
-    public int ResultType { get; set; }
+    [Column("result_type")] public int ResultType { get; set; }
 
-    [Column("result")]
-    public byte[] Result { get; set; }
+    [Column("result")] public byte[] Result { get; set; }
 
     public static implicit operator TaskRecordDao(TaskRecord record)
     {
@@ -55,7 +43,7 @@ public sealed class TaskRecordDao
             Nick = record.Nick,
             Command = record.Command,
             Alias = record.Alias,
-            Arguments = record.Arguments is null ? string.Empty : string.Join("__,__", record.Arguments),
+            Arguments = record.Arguments.Serialize(),
             ArtefactPath = record.ArtefactPath,
             Artefact = record.Artefact,
             StartTime = record.StartTime,
@@ -77,9 +65,7 @@ public sealed class TaskRecordDao
                 Nick = dao.Nick,
                 Command = dao.Command,
                 Alias = dao.Alias,
-                Arguments = string.IsNullOrWhiteSpace(dao.Arguments)
-                    ? Array.Empty<string>()
-                    : dao.Arguments.Split("__,__"),
+                Arguments = dao.Arguments.Deserialize<Dictionary<string, string>>(),
                 ArtefactPath = dao.ArtefactPath,
                 Artefact = dao.Artefact,
                 StartTime = dao.StartTime,

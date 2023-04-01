@@ -4,7 +4,7 @@
   Output: 1
   OpSec: Spawns "C:\Windows\System32\cmd.exe /c"
   Arguments:
-    - Name: args
+    - Key: args
       Optional: false
 
 - Alias: run
@@ -13,9 +13,9 @@
   Output: 1
   OpSec: Spawns a process
   Arguments:
-    - Name: program
+    - Key: program
       Optional: false
-    - Name: args
+    - Key: args
 
 - Alias: runas
   Description: Execute a program with alternate credentials and stream output
@@ -23,13 +23,15 @@
   Output: 1
   OpSec: Spawns a process
   Arguments:
-    - Name: DOMAIN\\Username
+    - Key: domain
       Optional: false
-    - Name: Password
+    - Key: username
       Optional: false
-    - Name: program
+    - Key: password
       Optional: false
-    - Name: args
+    - Key: program
+      Optional: false
+    - Key: args
 
 - Alias: powershell
   Description: Execute a PowerShell cmdlet
@@ -37,16 +39,17 @@
   Output: 1
   OpSec: Uses Lee Christensen's Unmanaged PowerShell runner
   Arguments:
-    - Name: /path/to/ps1
+    - Key: /path/to/ps1
       Type: 1
-    - Name: cmdlet
+    - Key: cmdlet
       Optional: false
+    - Key: args
       
 - Alias: powershell-import
   Description: Load a PowerShell script into memory
   Command: 62
   Arguments:
-    - Name: /path/to/ps1
+    - Key: /path/to/ps1
       Optional: false
       Type: 1
 
@@ -56,10 +59,11 @@
   Output: 1
   OpSec: Uses G0ldenGunSec's SharpTransactedLoad
   Arguments:
-    - Name: /path/to/assembly.exe
+    - Key: /path/to/assembly.exe
       Optional: false
       Type: 1
-    - Name: args
+    - Key: assembly-name
+    - Key: args
       
 - Alias: execute-pe
   Description: Load and execute a native binary
@@ -67,7 +71,7 @@
   Output: 1
   OpSec: Uses a C# reflective loader based on Nettitude's RunPE project
   Arguments:
-    - Name: /path/to/binary.exe
+    - Key: /path/to/binary.exe
       Optional: false
       Type: 1
-    - Name: args
+    - Key: args

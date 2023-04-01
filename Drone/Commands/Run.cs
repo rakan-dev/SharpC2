@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,8 +16,8 @@ public sealed class Run : DroneCommand
         {
             StartInfo = new ProcessStartInfo
             {
-                FileName = task.Arguments[0],
-                Arguments = string.Join(" ", task.Arguments.Skip(1)),
+                FileName = task.Arguments["program"],
+                Arguments = task.Arguments["args"],
                 CreateNoWindow = true,
                 WindowStyle = ProcessWindowStyle.Hidden,
                 RedirectStandardOutput = true,

@@ -11,7 +11,7 @@ public sealed class RemoveFile : DroneCommand
 
     public override Task Execute(DroneTask task, CancellationToken cancellationToken)
     {
-        File.Delete(task.Arguments[0]);
+        File.Delete(task.Arguments["path"]);
         return Task.CompletedTask;
     }
 }

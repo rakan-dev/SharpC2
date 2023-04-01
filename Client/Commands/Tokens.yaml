@@ -2,9 +2,11 @@
   Description: Create an access token with plaintext credentials
   Command: 42
   Arguments:
-    - Name: DOMAIN\\Username
+    - Key: domain
       Optional: false
-    - Name: password
+    - Key: username
+      Optional: false
+    - Key: password
       Optional: false
 
 - Alias: steal-token
@@ -12,7 +14,7 @@
   Command: 43
   Output: 1
   Arguments:
-    - Name: pid
+    - Key: pid
       Optional: false
 
 - Alias: rev2self

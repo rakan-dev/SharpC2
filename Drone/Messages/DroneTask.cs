@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using ProtoBuf;
 
@@ -14,7 +15,7 @@ public sealed class DroneTask
     public byte Command { get; set; }
 
     [ProtoMember(3)]
-    public string[] Arguments { get; set; } = Array.Empty<string>();
+    public Dictionary<string, string> Arguments { get; set; } = new();
 
     [ProtoMember(4)]
     public byte[] Artefact { get; set; } = Array.Empty<byte>();
