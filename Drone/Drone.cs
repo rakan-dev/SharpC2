@@ -213,13 +213,21 @@ public sealed class Drone
 
     private async Task ExecuteTask(DroneCommand command, DroneTask task)
     {
+        // send task running
+        await SendTaskRunning(task.Id);
+    
         try
         {
             // execute without a token
+            // blocks until finished
             await command.Execute(task, CancellationToken.None);
+            
+            // send task complete
+            await SendTaskComplete(task.Id);
         }
         catch (Exception e)
         {
+            // send error on exception
             await SendTaskError(task.Id, e.Message);
         }
     }
@@ -242,11 +250,16 @@ public sealed class Drone
         
         var thread = new Thread(async () =>
         {
-            // wrap this in a try/catch
+            // send task running
+            await SendTaskRunning(task.Id);
+            
             try
             {
                 // this blocks inside the thread
                 await command.Execute(task, tokenSource.Token);
+                
+                // send task complete
+                await SendTaskComplete(task.Id);
             }
             catch (TaskCanceledException)
             {
@@ -275,6 +288,7 @@ public sealed class Drone
             }
         });
         
+        // run thread
         thread.Start();
     }
 
@@ -586,7 +600,7 @@ public sealed class Drone
     {
         await SendTaskOutput(new TaskOutput(taskId, TaskStatus.COMPLETE));
     }
-    
+
     public async Task SendTaskError(string taskId, string error)
     {
         var taskOutput = new TaskOutput(taskId, TaskStatus.ABORTED, error);

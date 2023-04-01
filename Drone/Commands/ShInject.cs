@@ -85,7 +85,5 @@ public class ShInject : DroneCommand
         // close handle
         CloseHandle(hProcess);
         CloseHandle(hThread);
-        
-        await Drone.SendTaskComplete(task.Id);
     }
 }

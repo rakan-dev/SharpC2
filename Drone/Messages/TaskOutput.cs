@@ -30,7 +30,7 @@ public sealed class TaskOutput
     public TaskOutput(string taskId, string output)
     {
         TaskId = taskId;
-        Status = TaskStatus.COMPLETE;
+        Status = TaskStatus.RUNNING;
         Output = Encoding.UTF8.GetBytes(output);
     }
     

@@ -55,7 +55,7 @@
                             </TitleContent>
                             <ChildContent>
                                 
-                                @if (task.Status == TaskStatus.COMPLETE)
+                                @if (task.Status is TaskStatus.RUNNING or TaskStatus.COMPLETE)
                                 {
                                     switch (task.ResultType)
                                     {

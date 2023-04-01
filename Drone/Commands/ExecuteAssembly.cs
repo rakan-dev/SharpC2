@@ -43,9 +43,6 @@ public sealed class ExecuteAssembly : DroneCommand
             asm.EntryPoint?.Invoke(null, new object[] { task.Arguments });
         }
 
-        // send a task running
-        await Drone.SendTaskRunning(task.Id);
-
         // whilst assembly is executing
         // keep looping and reading stream
 
@@ -72,19 +69,12 @@ public sealed class ExecuteAssembly : DroneCommand
         // after task has finished, do a final read
         output = ReadStream(ms);
         
+        if (output.Length > 0)
+            await Drone.SendTaskOutput(new TaskOutput(task.Id, TaskStatus.COMPLETE, output));
+        
         // restore console
         Console.SetOut(stdOut);
         Console.SetError(stdErr);
-
-        if (t.ThreadState is ThreadState.Stopped or ThreadState.Aborted)
-        {
-            if (output.Length > 0)
-                await Drone.SendTaskOutput(new TaskOutput(task.Id, TaskStatus.COMPLETE, output));
-            
-            return;
-        }
-
-        await Drone.SendTaskComplete(task.Id);
     }
 
     private static byte[] ReadStream(MemoryStream ms)

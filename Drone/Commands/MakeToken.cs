@@ -14,7 +14,7 @@ public sealed class MakeToken : DroneCommand
     public override byte Command => 0x2A;
     public override bool Threaded => false;
 
-    public override async Task Execute(DroneTask task, CancellationToken cancellationToken)
+    public override Task Execute(DroneTask task, CancellationToken cancellationToken)
     {
         var split = task.Arguments[0].Split('\\');
 
@@ -37,6 +37,6 @@ public sealed class MakeToken : DroneCommand
         }
 
         Drone.ImpersonationToken = hToken;
-        await Drone.SendTaskComplete(task.Id);
+        return Task.CompletedTask;
     }
 }

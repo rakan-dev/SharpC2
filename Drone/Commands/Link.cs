@@ -20,11 +20,8 @@ public sealed class Link : DroneCommand
             var entry = await Dns.GetHostEntryAsync(ip);
             address = entry.HostName;
         }
-
-        var pipename = task.Arguments[1];
-        var commModule = new SmbCommModule(address, pipename);
         
+        var commModule = new SmbCommModule(address, task.Arguments[1]);
         await Drone.AddChildCommModule(task.Id, commModule);
-        await Drone.SendTaskComplete(task.Id);
     }
 }

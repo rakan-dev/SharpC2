@@ -9,9 +9,9 @@ public sealed class RemoveDirectory : DroneCommand
     public override byte Command => 0x19;
     public override bool Threaded => false;
 
-    public override async Task Execute(DroneTask task, CancellationToken cancellationToken)
+    public override Task Execute(DroneTask task, CancellationToken cancellationToken)
     {
         Directory.Delete(task.Arguments[0], true);
-        await Drone.SendTaskComplete(task.Id);
+        return Task.CompletedTask;
     }
 }

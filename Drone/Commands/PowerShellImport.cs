@@ -11,9 +11,9 @@ public sealed class PowerShellImport : DroneCommand
 
     public static string ImportedScript { get; private set; }
     
-    public override async Task Execute(DroneTask task, CancellationToken cancellationToken)
+    public override Task Execute(DroneTask task, CancellationToken cancellationToken)
     {
         ImportedScript = Encoding.ASCII.GetString(task.Artefact);
-        await Drone.SendTaskComplete(task.Id);
+        return Task.CompletedTask;
     }
 }
