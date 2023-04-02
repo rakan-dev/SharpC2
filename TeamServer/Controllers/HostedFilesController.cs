@@ -57,7 +57,7 @@ public class HostedFilesController : ControllerBase
             return NotFound();
 
         var fileName = request.Uri.Split('/').Last();
-        var fullPath = Path.Combine(handler.FilePath, fileName);
+        var fullPath = Path.Combine(handler.DataDirectory, fileName);
         await System.IO.File.WriteAllBytesAsync(fullPath, request.Bytes);
 
         var hostedFile = (HostedFile)request;
@@ -82,7 +82,7 @@ public class HostedFilesController : ControllerBase
             return NotFound("Handler not found");
         
         var fileName = hostedFile.Uri.Split('/').Last();
-        var fullPath = Path.Combine(handler.FilePath, fileName);
+        var fullPath = Path.Combine(handler.DataDirectory, fileName);
         
         if (System.IO.File.Exists(fullPath))
             System.IO.File.Delete(fullPath);

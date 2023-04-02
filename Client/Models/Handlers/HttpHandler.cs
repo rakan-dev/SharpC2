@@ -12,14 +12,15 @@ public sealed class HttpHandler : Handler
     {
         if (response is null)
             return null;
-        
+
         return new HttpHandler
         {
             Id = response.Id,
             Name = response.Name,
             BindPort = response.BindPort,
             ConnectAddress = response.ConnectAddress,
-            ConnectPort = response.ConnectPort
+            ConnectPort = response.ConnectPort,
+            PayloadType = (PayloadType)response.PayloadType
         };
     }
 }

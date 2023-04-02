@@ -29,22 +29,32 @@ public static class Helpers
         return ms.ToArray();
     }
 
-    public static async Task CreateCertificate(IPAddress address, string keyFile, string certFile)
+    public static byte[] GeneratePasswordHash(string password, out byte[] salt)
     {
-        var directory = Directory.GetCurrentDirectory();
+        using var pbkdf = new Rfc2898DeriveBytes(
+            password,
+            16,
+            50000,
+            HashAlgorithmName.SHA256);
+        
+        salt = pbkdf.Salt;
+        return pbkdf.GetBytes(32);
+    }
 
-        // if already exist, print thumbprint and return
-        if (File.Exists(Path.Combine(directory, keyFile)) && File.Exists(Path.Combine(directory, certFile)))
-        {
-            var raw = await File.ReadAllBytesAsync(Path.Combine(directory, keyFile));
-            var x509 = new X509Certificate2(raw);
-            
-            Console.WriteLine($"Certificate thumbprint: {x509.Thumbprint}");
-            return;
-        }
+    public static IEnumerable<byte> GeneratePasswordHash(string password, byte[] salt)
+    {
+        using var pbkdf = new Rfc2898DeriveBytes(
+            Encoding.UTF8.GetBytes(password),
+            salt,
+            50000,
+            HashAlgorithmName.SHA256);
 
-        // otherwise, create new self-signed cert
-        var distinguishedName = $"CN={address}";
+        return pbkdf.GetBytes(32);
+    }
+    
+    public static X509Certificate2 GenerateSelfSignedCertificate(string commonName)
+    {
+        var distinguishedName = $"CN={commonName}";
 
         using var rsa = RSA.Create(2048);
 
@@ -60,45 +70,20 @@ public static class Helpers
             new OidCollection { new("1.3.6.1.5.5.7.3.1") }, false));
 
         var subjectAlternativeName = new SubjectAlternativeNameBuilder();
-        subjectAlternativeName.AddIpAddress(address);
+
+        if (IPAddress.TryParse(commonName, out var address))
+        {
+            subjectAlternativeName.AddIpAddress(address);
+        }
+        else
+        {
+            subjectAlternativeName.AddDnsName(commonName);
+        }
 
         request.CertificateExtensions.Add(subjectAlternativeName.Build());
 
-        var cert = request.CreateSelfSigned(
+        return request.CreateSelfSigned(
             new DateTimeOffset(DateTime.UtcNow.AddDays(-1)),
             new DateTimeOffset(DateTime.UtcNow.AddDays(365)));
-
-        await File.WriteAllBytesAsync(
-            Path.Combine(directory, keyFile),
-            cert.Export(X509ContentType.Pkcs12));
-
-        await File.WriteAllBytesAsync(
-            Path.Combine(directory, certFile),
-            cert.Export(X509ContentType.Cert));
-        
-        Console.WriteLine($"Certificate thumbprint: {cert.Thumbprint}");
-    }
-    
-    public static byte[] GeneratePasswordHash(string password, out byte[] salt)
-    {
-        using var pbkdf = new Rfc2898DeriveBytes(
-            password,
-            16,
-            50000,
-            HashAlgorithmName.SHA256);
-        
-        salt = pbkdf.Salt;
-        return pbkdf.GetBytes(32);
-    }
-
-    public static byte[] GeneratePasswordHash(string password, byte[] salt)
-    {
-        using var pbkdf = new Rfc2898DeriveBytes(
-            Encoding.UTF8.GetBytes(password),
-            salt,
-            50000,
-            HashAlgorithmName.SHA256);
-
-        return pbkdf.GetBytes(32);
     }
 }

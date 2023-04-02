@@ -7,4 +7,6 @@ public class HttpHandlerRequest
     public string ConnectAddress { get; set; }
     public int ConnectPort { get; set; }
     public bool Secure { get; set; }
+    public byte[] PfxCertificate { get; set; }
+    public string PfxPassword { get; set; }
 }

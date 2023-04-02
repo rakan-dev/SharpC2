@@ -18,8 +18,8 @@ public enum HandlerType
 
 public enum PayloadType
 {
-    REVERSE_HTTP,
-    REVERSE_HTTPS,
+    HTTP,
+    HTTPS,
     BIND_PIPE,
     BIND_TCP,
     REVERSE_TCP,

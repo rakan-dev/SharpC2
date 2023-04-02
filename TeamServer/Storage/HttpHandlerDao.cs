@@ -28,6 +28,12 @@ public sealed class HttpHandlerDao
     [Column("payload_type")]
     public int PayloadType { get; set; }
 
+    [Column("pfx_cert")]
+    public byte[] PfxCertificate { get; set; }
+
+    [Column("pfx_pass")]
+    public string PfxPassword { get; set; }
+
     public static implicit operator HttpHandlerDao(HttpHandler handler)
     {
         return new HttpHandlerDao
@@ -38,7 +44,9 @@ public sealed class HttpHandlerDao
             ConnectAddress = handler.ConnectAddress,
             ConnectPort = handler.ConnectPort,
             Secure = handler.Secure,
-            PayloadType = (int)handler.PayloadType
+            PayloadType = (int)handler.PayloadType,
+            PfxCertificate = handler.PfxCertificate,
+            PfxPassword = handler.PfxPassword
         };
     }
 
@@ -52,7 +60,9 @@ public sealed class HttpHandlerDao
             ConnectAddress = dao.ConnectAddress,
             ConnectPort = dao.ConnectPort,
             Secure = dao.Secure,
-            PayloadType = (PayloadType)dao.PayloadType
+            PayloadType = (PayloadType)dao.PayloadType,
+            PfxCertificate = dao.PfxCertificate,
+            PfxPassword = dao.PfxPassword
         };
     }
 }

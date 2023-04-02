@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Server.Kestrel.Core;
+﻿using System.Net;
+using System.Security.Cryptography.X509Certificates;
+
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.FileProviders;
 
@@ -20,25 +23,28 @@ public class HttpHandler : Handler
     public string ConnectAddress { get; set; }
     public int ConnectPort { get; set; }
     public bool Secure { get; set; }
+    public byte[] PfxCertificate { get; set; }
+    public string PfxPassword { get; set; }
 
     public override HandlerType HandlerType
         => HandlerType.HTTP;
 
-    public string FilePath { get; set; }
+    public string DataDirectory { get; set; }
 
     private void CreateDataDirectory()
     {
-        FilePath = Path.Combine(Directory.GetCurrentDirectory(), "Data", Id);
-        
-        if (!Directory.Exists(FilePath))
-            Directory.CreateDirectory(FilePath);
+        DataDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Data", Id);
+
+        // create data directory
+        if (!Directory.Exists(DataDirectory))
+            Directory.CreateDirectory(DataDirectory);
     }
 
     public Task Start()
     {
         // ensure data directory exists
         CreateDataDirectory();
-        
+
         _tokenSource = new CancellationTokenSource();
 
         var host = new HostBuilder()
@@ -50,8 +56,8 @@ public class HttpHandler : Handler
 
     private void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseUrls($"http://0.0.0.0:{BindPort}");
         builder.UseSetting("name", Name);
+        builder.UseUrls(Secure ? $"https://0.0.0.0:{BindPort}" : $"http://0.0.0.0:{BindPort}");
         builder.Configure(ConfigureApp);
         builder.ConfigureServices(ConfigureServices);
         builder.ConfigureKestrel(ConfigureKestrel);
@@ -63,7 +69,7 @@ public class HttpHandler : Handler
         app.UseWebLogMiddleware();
         app.UseStaticFiles(new StaticFileOptions
         {
-            FileProvider = new PhysicalFileProvider(FilePath),
+            FileProvider = new PhysicalFileProvider(DataDirectory),
             ServeUnknownFileTypes = true,
             DefaultContentType = "test/plain"
         });
@@ -92,9 +98,21 @@ public class HttpHandler : Handler
         services.AddSingleton(Program.GetService<IHubContext<NotificationHub, INotificationHub>>());
     }
 
-    private static void ConfigureKestrel(KestrelServerOptions kestrel)
+    private void ConfigureKestrel(KestrelServerOptions kestrel)
     {
         kestrel.AddServerHeader = false;
+        kestrel.Listen(IPAddress.Any, BindPort, ListenOptions);
+    }
+
+    private void ListenOptions(ListenOptions o)
+    {
+        o.Protocols = HttpProtocols.Http1AndHttp2;
+
+        if (!Secure)
+            return;
+
+        var cert = new X509Certificate2(PfxCertificate, PfxPassword);
+        o.UseHttps(cert);
     }
 
     public void Stop()
@@ -106,7 +124,7 @@ public class HttpHandler : Handler
         _tokenSource.Dispose();
         
         // delete hosted files
-        Directory.Delete(FilePath, true);
+        Directory.Delete(DataDirectory, true);
     }
     
     public static implicit operator HttpHandler(HttpHandlerRequest request)
@@ -119,7 +137,9 @@ public class HttpHandler : Handler
             ConnectAddress = request.ConnectAddress,
             ConnectPort = request.ConnectPort,
             Secure = request.Secure,
-            PayloadType = request.Secure ? PayloadType.REVERSE_HTTPS : PayloadType.REVERSE_HTTP
+            PfxCertificate = request.PfxCertificate,
+            PfxPassword = request.PfxPassword,
+            PayloadType = request.Secure ? PayloadType.HTTPS : PayloadType.HTTP
         };
     }
 

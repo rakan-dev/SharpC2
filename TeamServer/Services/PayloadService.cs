@@ -30,7 +30,7 @@ public class PayloadService : IPayloadService
         // generate the assembly
         switch (handler.PayloadType)
         {
-            case PayloadType.REVERSE_HTTP:
+            case PayloadType.HTTP:
             {
                 var httpHandler = (HttpHandler)handler;
                 drone = await GenerateHttpDrone(httpHandler.ConnectAddress, httpHandler.ConnectPort);
@@ -38,7 +38,7 @@ public class PayloadService : IPayloadService
                 break;
             }
 
-            case PayloadType.REVERSE_HTTPS:
+            case PayloadType.HTTPS:
             {
                 var httpsHandler = (HttpHandler)handler;
                 drone = await GenerateHttpsDrone(httpsHandler.ConnectAddress, httpsHandler.ConnectPort);

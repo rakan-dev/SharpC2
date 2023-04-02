@@ -9,6 +9,7 @@
 <MudTable Items="@_handlers" Hover="true" Loading="@_loading" LoadingProgressColor="Color.Info">
     <HeaderContent>
         <MudTh>Name</MudTh>
+        <MudTh>Type</MudTh>
         <MudTh>Bind Port</MudTh>
         <MudTh>Connect Address</MudTh>
         <MudTh>Connect Port</MudTh>
@@ -16,6 +17,7 @@
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="Name">@context.Name</MudTd>
+        <MudTd DataLabel="Type">@context.PayloadType</MudTd>
         <MudTd DataLabel="BindPort">@context.BindPort</MudTd>
         <MudTd DataLabel="ConnectAddress">@context.ConnectAddress</MudTd>
         <MudTd DataLabel="ConnectPort">@context.ConnectPort</MudTd>

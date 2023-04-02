@@ -1,4 +1,5 @@
 using System.Net;
+using System.Security.Cryptography.X509Certificates;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
@@ -16,9 +17,8 @@ namespace TeamServer;
 
 internal static class Program
 {
-    private const string KeyFile = "server.key";
-    private const string CertFile = "server.crt";
-    
+    private const string ServerPfx = "server.pfx";
+
     private static WebApplication _app;
     
     internal static T GetService<T>()
@@ -37,12 +37,20 @@ internal static class Program
             Console.WriteLine("Invalid IP address.");
             return;
         }
+
+        var pfxPath = Path.Combine(Directory.GetCurrentDirectory(), ServerPfx);
+        
+        // check if pfx exists
+        if (!File.Exists(pfxPath))
+        {
+            // generate self-signed cert
+            var selfSigned = Helpers.GenerateSelfSignedCertificate(address.ToString());
+            var raw = selfSigned.Export(X509ContentType.Pkcs12);
+            await File.WriteAllBytesAsync(pfxPath, raw);
+        }
         
         var password = args[1];
-        
-        // generate https cert
-        await Helpers.CreateCertificate(address, KeyFile, CertFile);
-        
+
         // initialize auth service
         var authService = new AuthenticationService();
         
@@ -157,7 +165,7 @@ internal static class Program
     private static void ListenOptions(ListenOptions o)
     {
         o.Protocols = HttpProtocols.Http1AndHttp2;
-        o.UseHttps("server.key");
+        o.UseHttps(ServerPfx);
     }
     
     private static void ConfigureControllers(MvcOptions opts)

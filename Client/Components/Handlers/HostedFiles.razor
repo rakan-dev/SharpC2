@@ -81,8 +81,9 @@
         
         if (handler is null)
             return;
-        
-        var url = $"http://{handler.ConnectAddress}:{handler.ConnectPort}{file.Uri}";
+
+        var scheme = handler.PayloadType == PayloadType.HTTP ? "http" : "https";
+        var url = $"{scheme}://{handler.ConnectAddress}:{handler.ConnectPort}{file.Uri}";
         
         await Clipboard.Default.SetTextAsync(url);
     }

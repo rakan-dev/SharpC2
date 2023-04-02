@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Cryptography.X509Certificates;
+
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 
@@ -9,6 +11,7 @@ using SharpC2.API.Responses;
 using TeamServer.Handlers;
 using TeamServer.Hubs;
 using TeamServer.Interfaces;
+using TeamServer.Utilities;
 
 namespace TeamServer.Controllers;
 
@@ -110,6 +113,15 @@ public class HandlersController : ControllerBase
     public async Task<ActionResult<HttpHandlerResponse>> CreateHttpHandler([FromBody] HttpHandlerRequest request)
     {
         var handler = (HttpHandler)request;
+        
+        // if the handler is HTTPS but no cert was provided
+        // generate a self-signed one using the connect address
+        if (handler.Secure && handler.PfxCertificate is null)
+        {
+            var selfSigned = Helpers.GenerateSelfSignedCertificate(handler.ConnectAddress);
+            handler.PfxCertificate = selfSigned.Export(X509ContentType.Pkcs12);
+        }
+
         _ = handler.Start();
         
         await _handlers.Add(handler);
