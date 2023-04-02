@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 namespace Drone.CommModules;
@@ -14,7 +16,10 @@ public class HttpCommModule : EgressCommModule
     
     public override void Init(Metadata metadata)
     {
-        _client = new HttpClient();
+        var handler = new HttpClientHandler();
+        handler.ServerCertificateCustomValidationCallback += ServerCertificateCustomValidationCallback;
+        
+        _client = new HttpClient(handler);
         _client.BaseAddress = new Uri($"{Schema}://{ConnectAddress}:{ConnectPort}");
         _client.DefaultRequestHeaders.Clear();
 
@@ -48,6 +53,11 @@ public class HttpCommModule : EgressCommModule
         {
             // ignore
         }
+    }
+    
+    private static bool ServerCertificateCustomValidationCallback(HttpRequestMessage arg1, X509Certificate2 arg2, X509Chain arg3, SslPolicyErrors arg4)
+    {
+        return true;
     }
 
     private static string Schema => "http";
