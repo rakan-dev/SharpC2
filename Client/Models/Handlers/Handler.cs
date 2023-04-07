@@ -4,6 +4,7 @@ public abstract class Handler
 {
     public string Id { get; set; }
     public string Name { get; set; }
+    public string Profile { get; set; }
     public PayloadType PayloadType { get; set; }
 
     public override string ToString()

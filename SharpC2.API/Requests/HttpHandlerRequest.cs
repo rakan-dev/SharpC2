@@ -3,6 +3,7 @@
 public class HttpHandlerRequest
 {
     public string Name { get; set; }
+    public string Profile { get; set; }
     public int BindPort { get; set; }
     public string ConnectAddress { get; set; }
     public int ConnectPort { get; set; }

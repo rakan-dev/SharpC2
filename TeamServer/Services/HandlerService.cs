@@ -1,4 +1,5 @@
-﻿using TeamServer.Handlers;
+﻿using TeamServer.C2Profiles;
+using TeamServer.Handlers;
 using TeamServer.Interfaces;
 using TeamServer.Storage;
 
@@ -7,12 +8,14 @@ namespace TeamServer.Services;
 public class HandlerService : IHandlerService
 {
     private readonly IDatabaseService _db;
+    private readonly IProfileService _profiles;
 
     private readonly List<Handler> _handlers = new();
 
-    public HandlerService(IDatabaseService db)
+    public HandlerService(IDatabaseService db, IProfileService profiles)
     {
         _db = db;
+        _profiles = profiles;
     }
 
     public async Task LoadHandlersFromDb()
@@ -27,6 +30,11 @@ public class HandlerService : IHandlerService
         foreach (var dao in http)
         {
             var handler = (HttpHandler)dao;
+            
+            // recover the profile
+            var profile = await _profiles.Get(dao.C2Profile);
+            handler.C2Profile = profile ?? new C2Profile();
+            
             _ = handler.Start();
             _handlers.Add(handler);
         }

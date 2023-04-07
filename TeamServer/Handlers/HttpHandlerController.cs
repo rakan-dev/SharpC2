@@ -11,13 +11,11 @@ public class HttpHandlerController : ControllerBase
 {
     private readonly ICryptoService _crypto;
     private readonly IServerService _server;
-    private readonly IEventService _events;
 
-    public HttpHandlerController(ICryptoService crypto, IServerService server, IEventService events)
+    public HttpHandlerController(ICryptoService crypto, IServerService server)
     {
         _crypto = crypto;
         _server = server;
-        _events = events;
     }
 
     public async Task<IActionResult> RouteDrone()

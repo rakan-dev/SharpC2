@@ -6,6 +6,7 @@ public static class Routes
     {
         public const string Authentication = "/api/v1/auth";
         public const string Handlers = "/api/v1/handlers";
+        public const string Profiles = "/api/v1/profiles";
         public const string HostedFiles = "/api/v1/hosted_files";
         public const string Drones = "/api/v1/drones";
         public const string Tasks = "/api/v1/tasks";

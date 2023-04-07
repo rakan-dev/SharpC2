@@ -57,6 +57,7 @@ public class HttpHandler : Handler
     private void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseSetting("name", Name);
+        builder.UseSetting("profile", C2Profile.Name);
         builder.UseUrls(Secure ? $"https://0.0.0.0:{BindPort}" : $"http://0.0.0.0:{BindPort}");
         builder.Configure(ConfigureApp);
         builder.ConfigureServices(ConfigureServices);
@@ -78,16 +79,22 @@ public class HttpHandler : Handler
 
     private void ConfigureEndpoints(IEndpointRouteBuilder endpoint)
     {
-        endpoint.MapControllerRoute("/", "/", new
+        var paths = C2Profile.Http.GetPaths.Concat(C2Profile.Http.PostPaths);
+
+        foreach (var path in paths)
         {
-            controller = "HttpHandler", action = "RouteDrone"
-        });
+            endpoint.MapControllerRoute(path, path, new
+            {
+                controller = "HttpHandler", action = "RouteDrone"
+            });
+        }
     }
 
     private void ConfigureServices(IServiceCollection services)
     {
         services.AddControllers();
 
+        services.AddSingleton(Program.GetService<IProfileService>());
         services.AddSingleton(Program.GetService<IDatabaseService>());
         services.AddSingleton(Program.GetService<ICryptoService>());
         services.AddSingleton(Program.GetService<IDroneService>());
@@ -149,6 +156,7 @@ public class HttpHandler : Handler
         {
             Id = handler.Id,
             Name = handler.Name,
+            Profile = handler.C2Profile.Name,
             BindPort = handler.BindPort,
             ConnectAddress = handler.ConnectAddress,
             ConnectPort = handler.ConnectPort,

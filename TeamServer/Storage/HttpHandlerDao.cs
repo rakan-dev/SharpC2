@@ -12,6 +12,9 @@ public sealed class HttpHandlerDao
     
     [Column("name")]
     public string Name { get; set; }
+    
+    [Column("profile")]
+    public string C2Profile { get; set; }
 
     [Column("bind_port")]
     public int BindPort { get; set; }
@@ -40,6 +43,7 @@ public sealed class HttpHandlerDao
         {
             Id = handler.Id,
             Name = handler.Name,
+            C2Profile = handler.C2Profile.Name,
             BindPort = handler.BindPort,
             ConnectAddress = handler.ConnectAddress,
             ConnectPort = handler.ConnectPort,

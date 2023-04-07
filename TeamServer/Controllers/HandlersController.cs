@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.SignalR;
 using SharpC2.API;
 using SharpC2.API.Requests;
 using SharpC2.API.Responses;
-
+using TeamServer.C2Profiles;
 using TeamServer.Handlers;
 using TeamServer.Hubs;
 using TeamServer.Interfaces;
@@ -21,11 +21,13 @@ namespace TeamServer.Controllers;
 public class HandlersController : ControllerBase
 {
     private readonly IHandlerService _handlers;
+    private readonly IProfileService _profiles;
     private readonly IHubContext<NotificationHub, INotificationHub> _hub;
 
-    public HandlersController(IHandlerService handlers, IHubContext<NotificationHub, INotificationHub> hub)
+    public HandlersController(IHandlerService handlers, IProfileService profiles, IHubContext<NotificationHub, INotificationHub> hub)
     {
         _handlers = handlers;
+        _profiles = profiles;
         _hub = hub;
     }
     
@@ -113,6 +115,10 @@ public class HandlersController : ControllerBase
     public async Task<ActionResult<HttpHandlerResponse>> CreateHttpHandler([FromBody] HttpHandlerRequest request)
     {
         var handler = (HttpHandler)request;
+        
+        // get the c2 profile
+        var profile = await _profiles.Get(request.Profile);
+        handler.C2Profile = profile ?? new C2Profile();
         
         // if the handler is HTTPS but no cert was provided
         // generate a self-signed one using the connect address

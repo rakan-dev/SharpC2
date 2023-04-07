@@ -17,6 +17,7 @@ public sealed class HttpHandler : Handler
         {
             Id = response.Id,
             Name = response.Name,
+            Profile = response.Profile,
             BindPort = response.BindPort,
             ConnectAddress = response.ConnectAddress,
             ConnectPort = response.ConnectPort,
