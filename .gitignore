@@ -399,6 +399,5 @@ FodyWeavers.xsd
 *.idea/
 
 *.db
-*.key
-*.crt
+*.pfx
 TeamServer/Data/*

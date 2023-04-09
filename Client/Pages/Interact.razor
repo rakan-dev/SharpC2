@@ -114,7 +114,7 @@
 
             <MudAutocomplete T="string" Class="fixed-bottom" Label="Command" Variant="Variant.Outlined" TextUpdateSuppression="@false"
                              SearchFunc="@SearchCommands" ValueChanged="@CommandChanged" Clearable="@true"
-                             ResetValueOnEmptyText="@true" @ref="@_autocomplete" />
+                             ResetValueOnEmptyText="@true" @ref="@_autocomplete" MaxItems="@null" />
 
             <MudPaper Class="d-flex fixed-bottom justify-space-between flex-grow-1 gap-4 pa-2">
                 <MudText Typo="Typo.overline">@_drone.ToString()</MudText>

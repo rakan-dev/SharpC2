@@ -10,6 +10,33 @@ using static Data;
 public static class Delegates
 {
     [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true, CharSet = CharSet.Unicode)]
+    public delegate bool CreateProcessW(
+        [MarshalAs(UnmanagedType.LPWStr)] string applicationName,
+        [MarshalAs(UnmanagedType.LPWStr)] string commandLine,
+        ref SECURITY_ATTRIBUTES processAttributes,
+        ref SECURITY_ATTRIBUTES threadAttributes,
+        bool inheritHandles,
+        PROCESS_CREATION_FLAGS creationFlags,
+        IntPtr environment,
+        [MarshalAs(UnmanagedType.LPWStr)] string currentDirectory,
+        STARTUPINFOW startupInfo,
+        out PROCESS_INFORMATION processInformation);
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
+    public delegate bool TerminateProcess(
+        IntPtr hProcess,
+        uint exitCode);
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
+    public delegate uint QueueUserApc(
+        IntPtr fnApc,
+        IntPtr hThread,
+        IntPtr data);
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
+    public delegate uint ResumeThread(IntPtr hThread);
+    
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true, CharSet = CharSet.Unicode)]
     public delegate bool LogonUserW(
         [MarshalAs(UnmanagedType.LPWStr)] string lpszUsername,
         [MarshalAs(UnmanagedType.LPWStr)] string lpszDomain,

@@ -14,6 +14,49 @@ using static Delegates;
 
 public static class Methods
 {
+    public static bool CreateProcess(string applicationName, string commandLine,
+        ref SECURITY_ATTRIBUTES processAttributes, ref SECURITY_ATTRIBUTES threadAttributes,
+        bool inheritHandles, PROCESS_CREATION_FLAGS creationFlags, IntPtr environment, string currentDirectory,
+        STARTUPINFOW startupInfo, out PROCESS_INFORMATION processInformation)
+    {
+        object[] parameters =
+        {
+            applicationName, commandLine, processAttributes, threadAttributes, inheritHandles, creationFlags,
+            environment, currentDirectory, startupInfo, new PROCESS_INFORMATION()
+        };
+
+        var result = (bool)Generic.DynamicApiInvoke(
+            "kernel32.dll",
+            "CreateProcessW",
+            typeof(CreateProcessW),
+            ref parameters);
+        
+        processInformation = (PROCESS_INFORMATION)parameters[9];
+        return result;
+    }
+
+    public static uint QueueUserApc(IntPtr fnApc, IntPtr hThread)
+    {
+        object[] parameters = { fnApc, hThread, IntPtr.Zero };
+        
+        return (uint)Generic.DynamicApiInvoke(
+            "kernel32.dll",
+            "QueueUserAPC",
+            typeof(QueueUserApc),
+            ref parameters);
+    }
+
+    public static uint ResumeThread(IntPtr hThread)
+    {
+        object[] parameters = { hThread };
+        
+        return (uint)Generic.DynamicApiInvoke(
+            "kernel32.dll",
+            "ResumeThread",
+            typeof(ResumeThread),
+            ref parameters);
+    }
+    
     public static IntPtr OpenProcessToken(IntPtr hProcess, TOKEN_ACCESS tokenAccess)
     {
         var hToken = IntPtr.Zero;
@@ -308,6 +351,17 @@ public static class Methods
             "advapi32.dll",
             "CloseServiceHandle",
             typeof(CloseServiceHandle),
+            ref parameters);
+    }
+
+    public static bool TerminateProcess(IntPtr hProcess, uint exitCode)
+    {
+        object[] parameters = { hProcess, exitCode };
+        
+        return (bool)Generic.DynamicApiInvoke(
+            "kernel32.dll",
+            "TerminateProcess",
+            typeof(TerminateProcess),
             ref parameters);
     }
     

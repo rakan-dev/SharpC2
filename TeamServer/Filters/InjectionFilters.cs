@@ -27,24 +27,16 @@ public sealed class InjectionFilters : IAsyncActionFilter
             {
                 if (action is TaskRequest taskRequest)
                 {
-                    // shinject command
-                    if (taskRequest.Command == 0x4A)
+                    // shspawn
+                    if (taskRequest.Command == 0x4B)
                     {
-                        if (taskRequest.Artefact is null)
-                        {
-                            // args[0] == pid
-                            // args[1] == handler
-                            var handler = _handlers.Get<Handler>(taskRequest.Arguments["handler"]);
-                        
-                            if (handler is null)
-                                throw new ArgumentException("Handler not found");
-                        
-                            // generate shellcode
-                            taskRequest.Artefact = await _payloads.GeneratePayload(handler, PayloadFormat.SHELLCODE);
-                        
-                            // remove handler name from task
-                            taskRequest.Arguments.Remove("handler");
-                        }
+                        var handler = _handlers.Get<Handler>(taskRequest.Arguments["handler"]);
+
+                        if (handler is null)
+                            throw new ArgumentException("Handler not found");
+
+                        // generate shellcode
+                        taskRequest.Artefact = await _payloads.GeneratePayload(handler, PayloadFormat.SHELLCODE);
                     }
                 }
             }

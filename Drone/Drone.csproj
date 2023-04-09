@@ -99,6 +99,7 @@
         <Compile Include="Commands\RunPe.cs" />
         <Compile Include="Commands\SetSleep.cs" />
         <Compile Include="Commands\ShInject.cs" />
+        <Compile Include="Commands\ShSpawn.cs" />
         <Compile Include="Commands\StopDrone.cs" />
         <Compile Include="Commands\WhoAmI.cs" />
         <Compile Include="Commands\ListDirectory.cs" />

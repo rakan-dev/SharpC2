@@ -65,6 +65,14 @@
   Arguments:
     - Key: target
       Optional: false
+    - Key: method
+      Type: 3
+      Options:
+        - MMC20.Application
+        - ShellWindows
+        - ShellBrowserWindow
+        - ExcelDDE
+      Optional: false
     - Key: binary
       Optional: false
     - Key: args

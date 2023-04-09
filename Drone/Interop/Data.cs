@@ -52,30 +52,41 @@ public static class Data
     }
     
     [Flags]
-    public enum HANDLE_FLAGS : uint
+    public enum STARTUPINFO_FLAGS : uint
     {
-        None = 0,
-        INHERIT = 1,
-        PROTECT_FROM_CLOSE = 2
+        STARTF_FORCEONFEEDBACK = 0x00000040,
+        STARTF_FORCEOFFFEEDBACK = 0x00000080,
+        STARTF_PREVENTPINNING = 0x00002000,
+        STARTF_RUNFULLSCREEN = 0x00000020,
+        STARTF_TITLEISAPPID = 0x00001000,
+        STARTF_TITLEISLINKNAME = 0x00000800,
+        STARTF_UNTRUSTEDSOURCE = 0x00008000,
+        STARTF_USECOUNTCHARS = 0x00000008,
+        STARTF_USEFILLATTRIBUTE = 0x00000010,
+        STARTF_USEHOTKEY = 0x00000200,
+        STARTF_USEPOSITION = 0x00000004,
+        STARTF_USESHOWWINDOW = 0x00000001,
+        STARTF_USESIZE = 0x00000002,
+        STARTF_USESTDHANDLES = 0x00000100
     }
-    
+
     [StructLayout(LayoutKind.Sequential)]
-    public struct STARTUPINFO
+    public struct STARTUPINFOW
     {
-        public uint cb;
-        public IntPtr lpReserved;
-        public IntPtr lpDesktop;
-        public IntPtr lpTitle;
-        public int dwX;
-        public int dwY;
-        public int dwXSize;
-        public int dwYSize;
-        public int dwXCountChars;
-        public int dwYCountChars;
-        public int dwFillAttribute;
-        public int dwFlags;
-        public short wShowWindow;
-        public short cbReserved2;
+        public uint  cb;
+        [MarshalAs(UnmanagedType.LPWStr)] public string lpReserved;
+        [MarshalAs(UnmanagedType.LPWStr)] public string lpDesktop;
+        [MarshalAs(UnmanagedType.LPWStr)] public string lpTitle;
+        public uint  dwX;
+        public uint  dwY;
+        public uint  dwXSize;
+        public uint  dwYSize;
+        public uint  dwXCountChars;
+        public uint  dwYCountChars;
+        public uint  dwFillAttribute;
+        public STARTUPINFO_FLAGS  dwFlags;
+        public ushort wShowWindow;
+        public ushort cbReserved2;
         public IntPtr lpReserved2;
         public IntPtr hStdInput;
         public IntPtr hStdOutput;
@@ -83,9 +94,9 @@ public static class Data
     }
     
     [StructLayout(LayoutKind.Sequential)]
-    public struct STARTUPINFOEX
+    public struct STARTUPINFOEXW
     {
-        public STARTUPINFO StartupInfo;
+        public STARTUPINFOW StartupInfo;
         public IntPtr lpAttributeList;
     }
     

@@ -32,7 +32,7 @@
                                 case ArgumentType.STRING:
                                 {
                                     <MudTextField T="string" Label="@argument.Key" Required="@(!argument.Optional)"
-                                                  RequiredError="Argument is required" @bind-Value="@argument.Value"
+                                                  RequiredError="Argument is required" ValueChanged="@(value => ArgumentCallback(argument.Key, value))"
                                                   Immediate="@true" />
                                     
                                     break;
@@ -54,15 +54,15 @@
                                             </MudFileUpload>
                                         </MudItem>
                                         <MudItem xs="4">
-                                            @if (_artefact is not null)
+                                            @if (_taskRequest.Artefact is not null)
                                             {
                                                 <div class="d-flex">
                                                     <MudText Typo="Typo.overline" Class="pl-2">Artefact:</MudText>
-                                                    <MudText Typo="Typo.overline" Class="pl-2">@_artefact.Name</MudText>
+                                                    <MudText Typo="Typo.overline" Class="pl-2">@_taskRequest.ArtefactPath</MudText>
                                                 </div>
                                                 <div class="d-flex">
                                                     <MudText Typo="Typo.overline" Class="pl-2">Size:</MudText>
-                                                    <MudText Typo="Typo.overline" Class="pl-2">@_artefact.Size bytes</MudText>
+                                                    <MudText Typo="Typo.overline" Class="pl-2">@_taskRequest.Artefact.Length bytes</MudText>
                                                 </div>
                                             }
                                         </MudItem>
@@ -72,7 +72,8 @@
                                 }
                                 case ArgumentType.HANDLER:
                                 {
-                                    <MudSelect T="Handler" Label="Select Handler" Variant="Variant.Outlined" Dense="@true" @bind-Value="@_handler">
+                                    <MudSelect T="Handler" Label="Select Handler" Variant="Variant.Outlined" Dense="@true"
+                                               Required="@(!argument.Optional)" ValueChanged="HandlerCallback">
                                         @foreach (var handler in _handlers)
                                         {
                                             <MudSelectItem Value="@handler" />
@@ -81,7 +82,20 @@
                                     
                                     break;
                                 }
-                                    
+
+                                case ArgumentType.SELECTION:
+                                {
+                                    <MudSelect T="string" Label="@argument.Key" Variant="Variant.Outlined" Dense="@true"
+                                              Required="@(!argument.Optional)" ValueChanged="@(value => SelectionCallback(argument.Key, value))" >
+                                        @foreach (var option in argument.Options)
+                                        {
+                                            <MudSelectItem Value="@option"/>
+                                        }
+                                    </MudSelect>
+
+                                    break;
+                                }
+
                                 default:
                                     throw new ArgumentOutOfRangeException();
                             }
@@ -110,14 +124,21 @@
 
     private MudForm _form;
     private bool _success;
-    private IBrowserFile _artefact;
-    private Handler _handler;
     
-    private readonly TaskRequest _taskRequest = new();
+    private TaskRequest _taskRequest;
     private readonly List<Handler> _handlers = new();
 
     protected override async Task OnParametersSetAsync()
     {
+        // create new task request
+        _taskRequest = new TaskRequest
+        {
+            Alias = Command.Alias,
+            Command = Command.Command,
+            ResultType = Command.Output,
+            Arguments = new Dictionary<string, string>()
+        };
+        
         // load handlers if needed
         if (Command.Arguments.Any(a => a.Type == ArgumentType.HANDLER))
         {
@@ -127,71 +148,57 @@
             await InvokeAsync(StateHasChanged);
         }
     }
-
-    private void UploadFiles(IBrowserFile file)
+    
+    private void ArgumentCallback(string key, string value)
     {
-        _artefact = file;
+        if (!_taskRequest.Arguments.TryAdd(key, value))
+            _taskRequest.Arguments[key] = value;
+        
+        // if the value is null, remove it from the dict
+        if (string.IsNullOrWhiteSpace(_taskRequest.Arguments[key]))
+            _taskRequest.Arguments.Remove(key);
+    }
+    
+    private void HandlerCallback(Handler handler)
+    {
+        if (handler is null)
+            return;
+        
+        if (!_taskRequest.Arguments.TryAdd("handler", handler.Name))
+            _taskRequest.Arguments["handler"] = handler.Name;
+    }
+    
+    private void SelectionCallback(string key, string value)
+    {
+        if (!_taskRequest.Arguments.TryAdd(key, value))
+            _taskRequest.Arguments[key] = value;
+        
+    // if the value is null, remove it from the dict
+        if (string.IsNullOrWhiteSpace(_taskRequest.Arguments[key]))
+            _taskRequest.Arguments.Remove(key);
+    }
+
+    private async Task UploadFiles(IBrowserFile file)
+    {
+        using var ms = new MemoryStream();
+        await using var fs = file.OpenReadStream(5120000); // 5MB
+        await fs.CopyToAsync(ms);
+        
+        _taskRequest.ArtefactPath = file.Name;
+        _taskRequest.Artefact = ms.ToArray();
     }
 
     private async Task Submit()
     {
-        _taskRequest.Command = Command.Command;
-        _taskRequest.Alias = Command.Alias;
-        _taskRequest.ResultType = Command.Output;
+        // validate form
+        await _form.Validate();
+        if (!_form.IsValid) return;
 
-        var arguments = new Dictionary<string, string>();
-
-        foreach (var argument in Command.Arguments)
-        {
-            switch (argument.Type)
-            {
-                case ArgumentType.ARTEFACT:
-                {
-                    if (_artefact is null)
-                    {
-                        if (!argument.Optional)
-                            return;
-                    }
-                    else
-                    {
-                        using var ms = new MemoryStream();
-                        await using var fs = _artefact.OpenReadStream(5120000); // 5MB
-
-                        await fs.CopyToAsync(ms);
-
-                        _taskRequest.ArtefactPath = _artefact.Name;
-                        _taskRequest.Artefact = ms.ToArray();
-                    }
-
-                    break;
-                }
-
-                case ArgumentType.HANDLER:
-                {
-                    arguments.Add(argument.Key, _handler.Name);
-                    
-                    break;
-                }
-
-                case ArgumentType.STRING:
-                {
-                    if (!string.IsNullOrWhiteSpace(argument.Value))
-                        arguments.Add(argument.Key, argument.Value);
-                    
-                    break;
-                }
-                    
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-
-        _taskRequest.Arguments = arguments;
         await Api.TaskDrone(DroneId, _taskRequest);
 
         MudDialog.Close(DialogResult.Ok(true));
     }
-    
+
     private void Cancel()
         => MudDialog.Cancel();
 }

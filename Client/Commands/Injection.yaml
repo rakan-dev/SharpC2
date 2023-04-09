@@ -25,3 +25,5 @@
     - Key: handler
       Optional: false
       Type: 2
+    - Key: spawnto
+      Optional: false

@@ -16,6 +16,7 @@ public sealed class CommandArgument
     public string Key { get; set; } = "";
     public ArgumentType Type { get; set; } = ArgumentType.STRING;
     public string Value { get; set; } = "";
+    public string[] Options { get; set; } = Array.Empty<string>();
     public bool Optional { get; set; } = true;
 }
 
@@ -23,5 +24,6 @@ public enum ArgumentType
 {
     STRING,
     ARTEFACT,
-    HANDLER
+    HANDLER,
+    SELECTION
 }

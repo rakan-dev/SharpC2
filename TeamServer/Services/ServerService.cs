@@ -75,6 +75,9 @@ public class ServerService : IServerService
                 // map it to a task
                 var task = (DroneTask)record;
 
+                // remove instances of sensitive arguments so they don't go to the drone
+                task.Arguments.Remove("handler");
+
                 // pack into a frame
                 outbound.Add(new C2Frame(record.DroneId, FrameType.TASK, await Crypto.Encrypt(task)));
             
