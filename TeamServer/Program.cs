@@ -39,15 +39,22 @@ internal static class Program
         }
 
         var pfxPath = Path.Combine(Directory.GetCurrentDirectory(), ServerPfx);
+        X509Certificate2 pfx;
         
         // check if pfx exists
         if (!File.Exists(pfxPath))
         {
             // generate self-signed cert
-            var selfSigned = Helpers.GenerateSelfSignedCertificate(address.ToString());
-            var raw = selfSigned.Export(X509ContentType.Pkcs12);
-            await File.WriteAllBytesAsync(pfxPath, raw);
+            pfx = Helpers.GenerateSelfSignedCertificate(address.ToString());
+            await File.WriteAllBytesAsync(pfxPath, pfx.Export(X509ContentType.Pkcs12));
         }
+        else
+        {
+            pfx = new X509Certificate2(await File.ReadAllBytesAsync(ServerPfx));
+        }
+        
+        // print thumbprint
+        Console.WriteLine($"Certificate thumbprint: {pfx.Thumbprint}");
         
         var password = args[1];
 

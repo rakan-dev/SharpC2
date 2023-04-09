@@ -137,6 +137,40 @@ public static class Delegates
     
     [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
     public delegate uint WaitForSingleObject(IntPtr hHandle, uint dwMilliseconds);
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
+    public delegate IntPtr OpenSCManagerW(
+        [MarshalAs(UnmanagedType.LPWStr)] string machineName,
+        [MarshalAs(UnmanagedType.LPWStr)] string databaseName,
+        SCM_ACCESS_RIGHTS desiredAccess);
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
+    public delegate IntPtr CreateServiceW(
+        IntPtr hSCManager,
+        [MarshalAs(UnmanagedType.LPWStr)] string serviceName,
+        [MarshalAs(UnmanagedType.LPWStr)] string displayName,
+        SERVICE_ACCESS_RIGHTS desiredAccess,
+        SERVICE_TYPE serviceType,
+        START_TYPE startType,
+        ERROR_CONTROL errorControl,
+        [MarshalAs(UnmanagedType.LPWStr)] string binaryPathName,
+        [MarshalAs(UnmanagedType.LPWStr)] string loadOrderGroup,
+        IntPtr tagId,
+        [MarshalAs(UnmanagedType.LPWStr)] string dependencies,
+        [MarshalAs(UnmanagedType.LPWStr)] string serviceStartName,
+        [MarshalAs(UnmanagedType.LPWStr)] string password);
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
+    public delegate bool StartServiceW(
+        IntPtr hService,
+        uint numServiceArgs,
+        [MarshalAs(UnmanagedType.LPWStr)] string serviceArgVectors);
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
+    public delegate bool DeleteService(IntPtr hService);
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
+    public delegate bool CloseServiceHandle(IntPtr hSCObject);
     
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
     public delegate Native.NTSTATUS NtOpenProcess(

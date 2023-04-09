@@ -67,6 +67,7 @@
         <Reference Include="System.Core" />
         <Reference Include="System.Data" />
         <Reference Include="System.Drawing" />
+        <Reference Include="System.Management" />
         <Reference Include="System.Management.Automation">
           <HintPath>System.Management.Automation.dll</HintPath>
         </Reference>
@@ -87,10 +88,12 @@
     <ItemGroup>
         <Compile Include="Commands\ChangeDirectory.cs" />
         <Compile Include="Commands\Connect.cs" />
+        <Compile Include="Commands\DcomCommand.cs" />
         <Compile Include="Commands\DroneCommand.cs" />
         <Compile Include="Commands\ExecuteAssembly.cs" />
         <Compile Include="Commands\KillProcess.cs" />
         <Compile Include="Commands\Link.cs" />
+        <Compile Include="Commands\PsExecCommand.cs" />
         <Compile Include="Commands\Run.cs" />
         <Compile Include="Commands\RunAs.cs" />
         <Compile Include="Commands\RunPe.cs" />
@@ -113,6 +116,8 @@
         <Compile Include="Commands\StealToken.cs" />
         <Compile Include="Commands\TakeScreenshot.cs" />
         <Compile Include="Commands\UploadFile.cs" />
+        <Compile Include="Commands\WinRmCommand.cs" />
+        <Compile Include="Commands\WmiCommand.cs" />
         <Compile Include="CommModules\CommModule.cs" />
         <Compile Include="CommModules\HttpCommModule.cs" />
         <Compile Include="CommModules\SmbCommModule.cs" />

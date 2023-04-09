@@ -249,6 +249,67 @@ public static class Methods
             typeof(WaitForSingleObject),
             ref parameters);
     }
+
+    public static IntPtr OpenSCManager(string machineName, SCM_ACCESS_RIGHTS desiredAccess)
+    {
+        object[] parameters = { machineName, null, desiredAccess };
+        
+        return (IntPtr)Generic.DynamicApiInvoke(
+            "advapi32.dll",
+            "OpenSCManagerW",
+            typeof(OpenSCManagerW),
+            ref parameters);
+    }
+
+    public static IntPtr CreateService(IntPtr hSCManager, string serviceName, string displayName,
+        SERVICE_ACCESS_RIGHTS desiredAccess, SERVICE_TYPE serviceType, START_TYPE startType, string binaryPathName)
+    {
+        object[] parameters =
+        {
+            hSCManager, serviceName, displayName, desiredAccess, serviceType, startType,
+            ERROR_CONTROL.SERVICE_ERROR_IGNORE, binaryPathName, null, IntPtr.Zero, null,
+            "NT AUTHORITY\\SYSTEM", null
+        };
+        
+        return (IntPtr)Generic.DynamicApiInvoke(
+            "advapi32.dll",
+            "CreateServiceW",
+            typeof(CreateServiceW),
+            ref parameters);
+    }
+
+    public static bool StartService(IntPtr hService)
+    {
+        object[] parameters = { hService, (uint)0, null };
+        
+        return (bool)Generic.DynamicApiInvoke(
+            "advapi32.dll",
+            "StartServiceW",
+            typeof(StartServiceW),
+            ref parameters);
+    }
+
+    public static bool DeleteService(IntPtr hService)
+    {
+        object[] parameters = { hService };
+        
+        return (bool)Generic.DynamicApiInvoke(
+            "advapi32.dll",
+            "DeleteService",
+            typeof(DeleteService),
+            ref parameters);
+    }
+
+    public static bool CloseServiceHandle(IntPtr hSCObject)
+    {
+        object[] parameters = { hSCObject };
+        
+        return (bool)Generic.DynamicApiInvoke(
+            "advapi32.dll",
+            "CloseServiceHandle",
+            typeof(CloseServiceHandle),
+            ref parameters);
+    }
     
     public static Native.NTSTATUS NtOpenProcess(uint pid, uint desiredAccess, ref IntPtr hProcess)
     {

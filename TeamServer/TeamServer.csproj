@@ -33,6 +33,9 @@
       <EmbeddedResource Include="Resources\stager.ps1" />
       <None Remove="server.key" />
       <None Remove="server.crt" />
+      <None Update="C2Profiles\default.yaml">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
