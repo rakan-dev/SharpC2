@@ -120,6 +120,7 @@
         <Compile Include="Commands\WinRmCommand.cs" />
         <Compile Include="Commands\WmiCommand.cs" />
         <Compile Include="CommModules\CommModule.cs" />
+        <Compile Include="CommModules\ExtCommModule.cs" />
         <Compile Include="CommModules\HttpCommModule.cs" />
         <Compile Include="CommModules\SmbCommModule.cs" />
         <Compile Include="CommModules\TcpCommModule.cs" />

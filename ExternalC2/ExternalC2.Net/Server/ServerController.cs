@@ -2,22 +2,26 @@
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ExternalC2.NET.Server;
 
 /// <summary>
-/// Controller to handle connections with SharpC2's External C2 Handler
+/// Controller to handle a connection to SharpC2's External C2 Handler
 /// </summary>
 public sealed class ServerController : IDisposable
 {
     private readonly IPAddress _address;
     private readonly int _port;
-    private TcpClient _client;
+
+    private readonly TcpClient _teamServer = new();
+    private readonly CancellationTokenSource _tokenSource = new();
+
+    public Func<byte[], Task> OnDataFromTeamServer { get; set; }
     
     /// <summary>
-    /// 
+    /// Create a new instance of ServerController
     /// </summary>
     /// <param name="address">The IPAddress of the Team Server</param>
     /// <param name="port">The port of the External C2 Handler</param>
@@ -28,36 +32,27 @@ public sealed class ServerController : IDisposable
     }
 
     /// <summary>
-    /// Attempt to connect to the Team Server
+    /// Starts reading/writing to/from the Team Server
     /// </summary>
     /// <returns></returns>
-    public async Task<bool> Connect()
+    public async Task Start()
     {
-        _client = new TcpClient();
-
-        try
-        {
-            await _client.ConnectAsync(_address, _port);
-            return true;
-        }
-        catch
-        {
-            _client.Dispose();
-            return false;
-        }
+        await _teamServer.ConnectAsync(_address, _port);
+        _ = Task.Run(RunController);
     }
 
-    /// <summary>
-    /// Request an SMB payload from the Team Server
-    /// </summary>
-    /// <param name="pipename"></param>
-    /// <returns></returns>
-    public async Task<byte[]> RequestPayload(string pipename)
+    private async Task RunController()
     {
-        await SendData(Encoding.Default.GetBytes(pipename));
-        await Task.Delay(new TimeSpan(0, 0, 3));
+        while (!_tokenSource.IsCancellationRequested)
+        {
+            if (DataAvailable())
+            {
+                var data = await ReadData();
+                OnDataFromTeamServer?.Invoke(data);
+            }
 
-        return await ReadData();
+            await Task.Delay(100);
+        }
     }
 
     /// <summary>
@@ -74,7 +69,7 @@ public sealed class ServerController : IDisposable
         Buffer.BlockCopy(data, 0, lv, lengthBuf.Length, data.Length);
         
         using var ms = new MemoryStream(lv);
-        var stream = _client.GetStream();
+        var stream = _teamServer.GetStream();
         
         // write in chunks
         var bytesRemaining = lv.Length;
@@ -95,13 +90,15 @@ public sealed class ServerController : IDisposable
         while (bytesRemaining > 0);
     }
 
-    /// <summary>
-    /// Read data from the Team Server
-    /// </summary>
-    /// <returns></returns>
-    public async Task<byte[]> ReadData()
+    private bool DataAvailable()
     {
-        var stream = _client.GetStream();
+        var stream = _teamServer.GetStream();
+        return stream.DataAvailable;
+    }
+
+    private async Task<byte[]> ReadData()
+    {
+        var stream = _teamServer.GetStream();
         
         // read length
         var lengthBuf = new byte[4];
@@ -119,7 +116,11 @@ public sealed class ServerController : IDisposable
         do
         {
             var buf = new byte[1024];
-            read = await stream.ReadAsync(buf, 0, buf.Length);
+            
+            var remaining = length - totalRead;
+            var toRead = remaining >= buf.Length ? buf.Length : remaining;
+            
+            read = await stream.ReadAsync(buf, 0, toRead);
 
             await ms.WriteAsync(buf, 0, read);
             totalRead += read;
@@ -128,9 +129,23 @@ public sealed class ServerController : IDisposable
         
         return ms.ToArray();
     }
+    
+    /// <summary>
+    /// Stop the controller
+    /// </summary>
+    public void Stop()
+    {
+        if (_tokenSource.IsCancellationRequested)
+            return;
+        
+        _tokenSource.Cancel();
+        _tokenSource.Dispose();
+        
+        _teamServer.Dispose();
+    }
 
     public void Dispose()
     {
-        _client.Dispose();
+        Stop();
     }
 }

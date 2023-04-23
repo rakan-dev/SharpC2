@@ -27,7 +27,11 @@ public static class Extensions
         do
         {
             var buf = new byte[1024];
-            read = await stream.ReadAsync(buf, 0, buf.Length);
+            
+            var remaining = length - totalRead;
+            var toRead = remaining >= buf.Length ? buf.Length : remaining;
+            
+            read = await stream.ReadAsync(buf, 0, toRead);
 
             await ms.WriteAsync(buf, 0, read);
             totalRead += read;
@@ -66,5 +70,11 @@ public static class Extensions
             bytesRemaining -= lengthToSend;
         }
         while (bytesRemaining > 0);
+    }
+
+    public static bool DataAvailable(this TcpClient client)
+    {
+        var stream = client.GetStream();
+        return stream.DataAvailable;
     }
 }

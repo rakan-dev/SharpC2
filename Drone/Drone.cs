@@ -101,7 +101,7 @@ public sealed class Drone
         commModule.Init(_metadata);
         commModule.FrameReceived += HandleFrame;
         
-        // this blocks until connected
+        // this blocks until complete
         await commModule.Start();
         
         // a peer has connected, send this metadata

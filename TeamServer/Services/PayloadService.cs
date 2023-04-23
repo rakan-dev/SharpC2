@@ -34,7 +34,7 @@ public class PayloadService : IPayloadService
             PayloadType.BIND_PIPE => await GenerateBindSmbDrone((SmbHandler)handler),
             PayloadType.BIND_TCP => await GenerateBindTcpDrone((TcpHandler)handler),
             PayloadType.REVERSE_TCP => await GenerateReverseTcpDrone((TcpHandler)handler),
-            PayloadType.EXTERNAL => await GenerateBindSmbDrone((SmbHandler)handler),
+            PayloadType.EXTERNAL => await GenerateExternalDrone((ExtHandler)handler),
 
             _ => throw new ArgumentOutOfRangeException()
         };
@@ -196,6 +196,29 @@ public class PayloadService : IPayloadService
     private Task<byte[]> GenerateReverseTcpDrone(TcpHandler handler)
     {
         throw new NotImplementedException();
+    }
+
+    private async Task<byte[]> GenerateExternalDrone(ExtHandler handler)
+    {
+        var drone = await GetDroneModule();
+        
+        // get the ext comm module
+        var extCommModuleDef = GetTypeDef(drone, "Drone.CommModules.ExtCommModule");
+        
+        // tcp module ctor
+        var extCommModuleCtor = GetMethodDef(extCommModuleDef, "System.Void Drone.CommModules.ExtCommModule::.ctor()");
+        
+        // get main comm module
+        var droneDef = GetTypeDef(drone, "Drone.Drone");
+        var getCommModuleDef = GetMethodDef(droneDef, "Drone.CommModules.CommModule Drone.Drone::GetCommModule()");
+        
+        // set main comm module
+        getCommModuleDef.Body.Instructions[0].Operand = extCommModuleCtor;
+        
+        await using var ms = new MemoryStream();
+        drone.Write(ms);
+
+        return ms.ToArray();
     }
 
     private static async Task<byte[]> BuildExe(byte[] drone)

