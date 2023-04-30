@@ -1,10 +1,16 @@
-﻿namespace TeamServer.Events;
+﻿using System.Text.Json.Serialization;
+
+namespace TeamServer.Events;
 
 public abstract class SharpC2Event
 {
+    [JsonPropertyName("id")]
+    public string Id { get; set; }
+    
+    [JsonPropertyName("type")]
     public abstract EventType Type { get; }
     
-    public string Id { get; set; }
+    [JsonPropertyName("date")]
     public DateTime Date { get; set; }
 }
 

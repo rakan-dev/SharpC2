@@ -6,12 +6,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-
+using TeamServer.Events;
 using TeamServer.Filters;
 using TeamServer.Hubs;
 using TeamServer.Interfaces;
 using TeamServer.Services;
 using TeamServer.Utilities;
+using TeamServer.Webhooks;
 
 namespace TeamServer;
 
@@ -124,12 +125,13 @@ internal static class Program
         builder.Services.AddSingleton<IServerService, ServerService>();
         builder.Services.AddSingleton<IPeerToPeerService, PeerToPeerService>();
         builder.Services.AddSingleton<ISocksService, SocksService>();
+        builder.Services.AddSingleton<IEventService, EventService>();
+        builder.Services.AddSingleton<IWebhookService, WebhookService>();
 
         builder.Services.AddTransient<IProfileService, ProfileService>();
         builder.Services.AddTransient<ICryptoService, CryptoService>();
         builder.Services.AddTransient<IDroneService, DroneService>();
         builder.Services.AddTransient<IPayloadService, PayloadService>();
-        builder.Services.AddTransient<IEventService, EventService>();
         builder.Services.AddTransient<IHostedFilesService, HostedFileService>();
         builder.Services.AddTransient<IReversePortForwardService, ReversePortForwardService>();
 
@@ -148,6 +150,9 @@ internal static class Program
 
         // load saved handlers from DB
         await LoadHandlersFromDatabase();
+        
+        // get saved webhooks and register new events
+        await LoadWebhooks();
         
         if (_app.Environment.IsDevelopment())
         {
@@ -185,5 +190,21 @@ internal static class Program
     {
         var service = (HandlerService) GetService<IHandlerService>();
         await service.LoadHandlersFromDb();
+    }
+
+    private static async Task LoadWebhooks()
+    {
+        var webhookService = GetService<IWebhookService>();
+        await ((WebhookService)webhookService).LoadWebhooksFromDb();
+        
+        var eventService = GetService<IEventService>();
+
+        var webhooks = webhookService.Get<SharpC2Webhook>();
+        
+        foreach (var webhook in webhooks)
+        {
+            Task Callback(SharpC2Event ev) => webhook.Send(ev);
+            eventService.SubscribeEvent(webhook.Id, Callback);
+        }
     }
 }

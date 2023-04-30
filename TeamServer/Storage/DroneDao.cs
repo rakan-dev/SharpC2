@@ -64,26 +64,25 @@ public sealed class DroneDao
 
     public static implicit operator Drone(DroneDao dao)
     {
-        if (dao is null)
-            return null;
-        
-        return new Drone
-        {
-            Parent = dao.Parent,
-            FirstSeen = dao.FirstSeen,
-            LastSeen = dao.LastSeen,
-            Status = (DroneStatus)dao.Status,
-            Metadata = new Metadata
+        return dao is null
+            ? null
+            : new Drone
             {
-                Id = dao.Id,
-                Identity = dao.Identity,
-                Address = dao.Address,
-                Hostname = dao.Hostname,
-                Process = dao.Process,
-                Pid = dao.Pid,
-                Is64Bit = dao.Is64Bit,
-                Integrity = (IntegrityLevel)dao.Integrity
-            }
-        };
+                Parent = dao.Parent,
+                FirstSeen = dao.FirstSeen,
+                LastSeen = dao.LastSeen,
+                Status = (DroneStatus)dao.Status,
+                Metadata = new Metadata
+                {
+                    Id = dao.Id,
+                    Identity = dao.Identity,
+                    Address = dao.Address,
+                    Hostname = dao.Hostname,
+                    Process = dao.Process,
+                    Pid = dao.Pid,
+                    Is64Bit = dao.Is64Bit,
+                    Integrity = (IntegrityLevel)dao.Integrity
+                }
+            };
     }
 }

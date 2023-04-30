@@ -64,4 +64,11 @@ public interface INotificationHub
     Task SocksProxyStopped(string id);
 
     #endregion
+
+    #region Webhooks
+
+    Task WebhookCreated(string name);
+    Task WebhookDeleted(string name);
+
+    #endregion
 }

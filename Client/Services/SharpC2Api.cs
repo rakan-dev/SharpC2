@@ -7,6 +7,7 @@ using Client.Models.Events;
 using Client.Models.Handlers;
 using Client.Models.Pivots;
 using Client.Models.Tasks;
+using Client.Models.Webhooks;
 
 using RestSharp;
 using RestSharp.Authenticators;
@@ -358,6 +359,36 @@ public class SharpC2Api
     public async Task DeleteSocksProxy(string id)
     {
         var request = new RestRequest($"{SharpC2.API.Routes.V1.Pivots}/socks/{id}", Method.Delete);
+        await _client.ExecuteAsync(request);
+    }
+
+    public async Task<IEnumerable<SharpC2Webhook>> GetWebhooks()
+    {
+        var request = new RestRequest(SharpC2.API.Routes.V1.Webhooks);
+        var response = await _client.ExecuteAsync<IEnumerable<WebhookResponse>>(request);
+
+        return response.Data.Select(h => (SharpC2Webhook)h);
+    }
+    
+    public async Task<SharpC2Webhook> GetWebhook(string name)
+    {
+        var request = new RestRequest($"{SharpC2.API.Routes.V1.Webhooks}/{name}");
+        var response = await _client.ExecuteAsync<WebhookResponse>(request);
+
+        return response.Data;
+    }
+
+    public async Task DeleteWebhook(string name)
+    {
+        var request = new RestRequest($"{SharpC2.API.Routes.V1.Webhooks}/{name}", Method.Delete);
+        await _client.ExecuteAsync<WebhookResponse>(request);
+    }
+
+    public async Task CreateWebhook(WebhookRequest webhookRequest)
+    {
+        var request = new RestRequest(SharpC2.API.Routes.V1.Webhooks, Method.Post);
+        request.AddParameter("application/json", JsonSerializer.Serialize(webhookRequest), ParameterType.RequestBody);
+
         await _client.ExecuteAsync(request);
     }
 }

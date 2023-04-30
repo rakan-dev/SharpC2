@@ -13,6 +13,9 @@ public sealed class EventService : IEventService
         _db = db;
     }
 
+    private event Func<SharpC2Event, Task> OnEvent;
+    private readonly Dictionary<string, Func<SharpC2Event, Task>> _callbacks = new();
+
     public async Task Add(SharpC2Event ev)
     {
         var conn = _db.GetAsyncConnection();
@@ -34,6 +37,8 @@ public sealed class EventService : IEventService
             default:
                 throw new ArgumentOutOfRangeException();
         }
+        
+        OnEvent?.Invoke(ev);
     }
 
     public async Task<IEnumerable<UserAuthEvent>> GetAuthEvents()
@@ -62,5 +67,17 @@ public sealed class EventService : IEventService
     {
         var conn = _db.GetAsyncConnection();
         return await conn.Table<WebLogDao>().FirstOrDefaultAsync(e => e.Id.Equals(id));
+    }
+
+    public void SubscribeEvent(string id, Func<SharpC2Event, Task> callback)
+    {
+        OnEvent += callback;
+        _callbacks.Add(id, callback);
+    }
+
+    public void UnsubscribeEvent(string id)
+    {
+        if (_callbacks.TryGetValue(id, out var callback))
+            OnEvent -= callback;
     }
 }

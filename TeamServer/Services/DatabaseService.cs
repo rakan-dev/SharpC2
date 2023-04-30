@@ -33,6 +33,8 @@ public class DatabaseService : IDatabaseService
             conn.CreateTable<TaskRecordDao>();
             conn.CreateTable<ReversePortForwardDao>();
             conn.CreateTable<SocksDao>();
+            conn.CreateTable<SlackWebhookDao>();
+            conn.CreateTable<CustomWebhookDao>();
         }
         
         // open connections

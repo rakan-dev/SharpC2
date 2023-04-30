@@ -7,5 +7,11 @@ public partial class App : Application
         InitializeComponent();
 
         MainPage = new MainPage();
+        MainPage.Disappearing += MainPageOnDisappearing;
+    }
+
+    private static void MainPageOnDisappearing(object sender, EventArgs e)
+    {
+        SecureStorage.Remove("nick");
     }
 }

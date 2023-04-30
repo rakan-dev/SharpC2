@@ -1,5 +1,6 @@
 ﻿using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
+
 using Microsoft.AspNetCore.SignalR.Client;
 
 namespace Client.Services;
@@ -35,6 +36,9 @@ public class SharpC2Hub
     public Func<string, Task> SocksProxyStopped { get; set; }
 
     public Func<int, string, Task> NewEvent { get; set; }
+
+    public Func<string, Task> WebhookCreated { get; set; }
+    public Func<string, Task> WebhookDeleted { get; set; }
     
     private HubConnection _connection;
 
@@ -80,6 +84,9 @@ public class SharpC2Hub
         
         _connection.On<string>("SocksProxyStarted", OnSocksProxyStarted);
         _connection.On<string>("SocksProxyStopped", OnSocksProxyStopped);
+        
+        _connection.On<string>("WebhookCreated", OnWebhookCreated);
+        _connection.On<string>("WebhookDeleted", OnWebhookDeleted);
     }
     
     private static HttpMessageHandler HttpMessageHandlerFactory(HttpMessageHandler handler)
@@ -125,4 +132,7 @@ public class SharpC2Hub
     
     private void OnSocksProxyStarted(string id) => SocksProxyStarted?.Invoke(id);
     private void OnSocksProxyStopped(string id) => SocksProxyStopped?.Invoke(id);
+
+    private void OnWebhookCreated(string name) => WebhookCreated?.Invoke(name);
+    private void OnWebhookDeleted(string name) => WebhookDeleted?.Invoke(name);
 }
