@@ -17,6 +17,7 @@ public sealed class TaskOutput
 
 public enum TaskStatus
 {
-    COMPLETE,
-    ABORTED
+    RUNNING = 2,
+    COMPLETE = 3,
+    ABORTED = 4
 }

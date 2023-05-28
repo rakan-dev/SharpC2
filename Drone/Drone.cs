@@ -18,7 +18,7 @@ public sealed class Drone
 {
     public Config Config { get; } = new();
     
-    private Metadata _metadata;
+    public Metadata _metadata;
     private CommModule _commModule;
     
     private readonly CancellationTokenSource _token = new();
@@ -613,7 +613,7 @@ public sealed class Drone
         await SendC2Frame(frame);
     }
 
-    private async Task SendC2Frame(C2Frame frame)
+    public async Task SendC2Frame(C2Frame frame)
     {
         // lol bit silly
         switch (_commModule)

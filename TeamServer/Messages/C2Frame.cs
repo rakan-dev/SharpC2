@@ -37,5 +37,7 @@ public enum FrameType
     SOCKS_PROXY,
     LINK,
     UNLINK,
+    EXFILTRATION_METADATA,
+    EXFILTRATION_FRAGMENT,
     EXIT
 }

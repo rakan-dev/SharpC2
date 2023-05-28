@@ -71,4 +71,11 @@ public interface INotificationHub
     Task WebhookDeleted(string name);
 
     #endregion
+
+    #region Exfiltration
+    Task ExfiltrateStarted(string taskId);
+    Task ExfiltrateStopped(string taskId);
+    Task ExfiltratePrograss(string taskId,int current ,int total);
+    Task ExfiltrateFinished(string taskId);
+    #endregion
 }

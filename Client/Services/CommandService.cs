@@ -18,7 +18,8 @@ public class CommandService
         var root = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         var directory = Path.Combine(root, "Commands");
 #endif
-
+        var root = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+         directory = Path.Combine(root, "Commands");
         var files = Directory.EnumerateFiles(directory, "*.yaml");
         var deserializer = new Deserializer();
         

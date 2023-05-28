@@ -78,3 +78,12 @@
   Arguments:
     - Key: pid
       Optional: false
+
+- Alias: exfiltration
+  Description: exfiltrate a file
+  Command: 32
+  Arguments:
+    - Key: filepath
+      Optional: false
+    - Key: fragmentSize
+      Optional: false

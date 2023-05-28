@@ -35,6 +35,8 @@ public class DatabaseService : IDatabaseService
             conn.CreateTable<SocksDao>();
             conn.CreateTable<SlackWebhookDao>();
             conn.CreateTable<CustomWebhookDao>();
+            conn.CreateTable<ExfiltrationDao>();
+            conn.CreateTable<FragmentDao>();
         }
         
         // open connections

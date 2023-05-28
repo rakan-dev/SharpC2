@@ -13,6 +13,7 @@ namespace TeamServer.Services;
 public class ServerService : IServerService
 {
     public IDroneService Drones { get; }
+    public IExfiltrationService Exfiltration { get; }
     public IPeerToPeerService PeerToPeer { get; }
     public ITaskService Tasks { get; }
     public ICryptoService Crypto { get; }
@@ -22,10 +23,11 @@ public class ServerService : IServerService
     
     private readonly List<ServerModule> _modules = new();
 
-    public ServerService(IDroneService drones, IPeerToPeerService peerToPeer, ITaskService tasks, ICryptoService crypto,
+    public ServerService(IDroneService drones, IExfiltrationService exfiltration, IPeerToPeerService peerToPeer, ITaskService tasks, ICryptoService crypto,
         IReversePortForwardService portForwards, ISocksService socksService, IHubContext<NotificationHub, INotificationHub> hub)
     {
         Drones = drones;
+        Exfiltration = exfiltration;
         PeerToPeer = peerToPeer;
         Tasks = tasks;
         Crypto = crypto;

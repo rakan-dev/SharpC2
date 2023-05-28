@@ -128,6 +128,7 @@ internal static class Program
         builder.Services.AddSingleton<IEventService, EventService>();
         builder.Services.AddSingleton<IWebhookService, WebhookService>();
 
+        builder.Services.AddTransient<IExfiltrationService, ExfiltrationService>();
         builder.Services.AddTransient<IProfileService, ProfileService>();
         builder.Services.AddTransient<ICryptoService, CryptoService>();
         builder.Services.AddTransient<IDroneService, DroneService>();
